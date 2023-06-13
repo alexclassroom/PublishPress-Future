@@ -2,9 +2,10 @@
 Contributors: publishpress, kevinB, stevejburge, andergmartins
 Author: publishpress
 Author URI: https://publishpress.com
-Tags: expire posts, update posts, schedule changes, automatic changes, 
+Tags: expire posts, update posts, schedule changes, automatic changes,
 Requires at least: 5.3
-Tested up to: 6.1
+Requires PHP: 5.6
+Tested up to: 6.2
 Stable tag: 2.9.2
 
 Add an expiration date to posts. When your post is automatically unpublished, you can delete the post, change the status, or update the post categories.
@@ -22,8 +23,10 @@ Here's an overview of what you can do with PublishPress Future:
 * Receive email notifications when your content expires.
 * Show expiry dates in your content, automatically or with shortcodes.
 
+## PublishPress Future Pro ##
+
 > <strong>Upgrade to PublishPress Future Pro</strong><br />
-> This plugin is the free version of the PublishPress Future plugin. The Pro version comes with all the features you need to schedule changes to your WordPresss content. <a href="https://publishpress.com/future"  title="PublishPress Future Pro">Click here to purchase the best premium WordPress content update plugin now!</a>
+> This plugin is the free version of the PublishPress Future plugin. The Pro version comes with all the features you need to schedule changes to your WordPresss content. <a href="https://publishpress.com/future"  title="PublishPress Future Pro">Click here to purchase the best plugin for scheduling WordPress content updates!</a>
 
 ## Options for Future Actions on Posts
 
@@ -70,7 +73,7 @@ For each expiration event, a custom cron job is scheduled. This can help reduce 
 
 [Click here to see the technical details for this plugin](https://publishpress.com/knowledge-base/scheduling-cron-jobs/).
 
-## Logs for All Your Post Changes 
+## Logs for All Your Post Changes
 
 PublishPress Future Pro allows you to keep a detailed record of all the changes that happen to your posts. PublishPress Future records several key data points for all actions:
 
@@ -84,7 +87,7 @@ PublishPress Future Pro allows you to keep a detailed record of all the changes 
 
 The Pro versions of the PublishPress plugins are well worth your investment. The Pro versions have extra features and faster support. [Click here to join PublishPress](https://publishpress.com/pricing/).
 
-Join PublishPress and you'll get access to these Pro plugins:
+Join PublishPress and you'll get access to these nine Pro plugins:
 
 * [PublishPress Authors Pro](https://publishpress.com/authors) allows you to add multiple authors and guest authors to WordPress posts.
 * [PublishPress Blocks Pro](https://publishpress.com/blocks) has everything you need to build professional websites with the WordPress block editor.
@@ -133,9 +136,37 @@ Yes, the PublishPress Future plugin allows you to schedule automatic changes to 
 Yes, the PublishPress Future plugin allows you to schedule automatic changes to posts, pages and other content types including WooCommerce products. To enable this feature, go to Future > Post Types. Check the “Active” box for the post type you're using with Elementor.
 
 [Click here for more details on Elementor post changes](https://publishpress.com/knowledge-base/schedule-changes-elementor/)
-    
+
 
 == Changelog ==
+
+= [3.0.0] - [13 Jun, 2023] =
+
+* ADDED: Add Deutch translation files, #429;
+* CHANGED: Post expiration queue migrated from WP Cron to Action Scheduler library from WooCommerce, #149;
+* CHANGED: Deprecate hook "publishpressfuture_expire" in favor of "publishpress_future/run_workflow". New hook has two arguments: postId and action, #149;
+* CHANGED: Changed the label "Type" to "Action" in the bulk edit field;
+* CHANGED: Change the capability checked before authorizing API usage. Changed from `edit_posts` to `publishpress_future_expire_post`;
+* CHANGED: Added the old post status in the log message when the post expires changing status;
+* CHANGED: Change the text of options in the bulk edit field, for more clearance;
+* CHANGED: Change text of Post Types settings tab;
+* CHANGED: FIXED: Replace "Expiry" with "Actions", #392;
+* FIXED: Fix PHP warning about undefined index 'terms', #412;
+* FIXED: Fix error on block editor: can't read "length" of undefined;
+* FIXED: Fix escaping on a few admin text;
+* FIXED: Fix text and positions of expiration fields in the bulk edit form;
+* FIXED: Fix email notifications, #414;
+* FIXED: Fix PHP Fatal error: Uncaught TypeError: gmdate(): Argument #2 ($timestamp) must be of type ?int, #413;
+* FIXED: All the expirations scheduled to the future run if we call "wp cron events run --all", #340;
+* FIXED: Deactivation of the plugin does not remove the cron jobs and settings, #107;
+* FIXED: Can we make the cron schedule more human-readable, #231;
+* FIXED: Expiration actions related to taxonomy are not working if default way to expire is not taxonomy related, #409;
+* FIXED: Database error on a new site install, #424;
+* FIXED: Bulk Edit Text doesn't match Quick Edit, #422;
+* FIXED: Expiration Email Notification is not working, #414;
+* FIXED: Capital case for statuses, #430;
+* FIXED: Make sure all files has protection against direct access, #436;
+* FIXED: Fix fatal error sending expiration email, #434, #433;
 
 = [2.9.2] - 28 Feb, 2023 =
 
@@ -163,6 +194,8 @@ Yes, the PublishPress Future plugin allows you to schedule automatic changes to 
 * FIXED: HTML escaping for a field on the settings screen;
 * FIXED: Fix the expiration date column date format;
 * FIXED: Fix option to clear data on uninstall, removing the debug table;
+* FIXED: Combining Multiple Cron Events #149;
+
 
 = [2.8.3] - 10 Jan, 2023 =
 
