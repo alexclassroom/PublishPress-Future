@@ -164,7 +164,7 @@ class ExpirablePostModel extends PostModel
             'category' => $this->getExpirationCategoryIDs(),
             'categoryTaxonomy' => $this->getExpirationTaxonomy(),
             'enabled' => $this->isExpirationEnabled(),
-            'date' => $this->getExpirationDate(),
+            'date' => $this->getExpirationDateAsUnixTime(),
         ];
     }
 
@@ -332,7 +332,17 @@ class ExpirablePostModel extends PostModel
     /**
      * @return int|false
      */
-    public function getExpirationDate()
+    public function getExpirationDateAsUnixTime()
+    {
+        $this->expirationDate = $this->getExpirationDateString();
+
+        return (int)strtotime($this->expirationDate);
+    }
+
+    /**
+     * @return int|false
+     */
+    public function getExpirationDateString($gmt = true)
     {
         if (is_null($this->expirationDate)) {
             try {
@@ -346,7 +356,11 @@ class ExpirablePostModel extends PostModel
             } catch (NonexistentPostException $e) {
             }
 
-            $this->expirationDate = $this->actionArgsModel->getScheduledDateAsUnixTime();
+            $this->expirationDate = $this->actionArgsModel->getScheduledDate();
+        }
+
+        if (! $gmt) {
+            return wp_date('Y-m-d H:i:s', $this->getExpirationDateAsUnixTime());
         }
 
         return $this->expirationDate;
@@ -385,6 +399,13 @@ class ExpirablePostModel extends PostModel
                 $postId . ' -> Future action is not activated for the post, but $force = true'
             );
         }
+
+        // Stores the post title and post type in the action args for using if the post is deleted later.
+        $args = $this->actionArgsModel->getArgs();
+        $args['post_title'] = $this->getTitle();
+        $args['post_type'] = $this->getPostType();
+        $this->actionArgsModel->setArgs($args);
+        $this->actionArgsModel->save();
 
         /*
          * Remove KSES - wp_cron runs as an unauthenticated user, which will by default trigger kses filtering,
@@ -487,6 +508,36 @@ class ExpirablePostModel extends PostModel
         return $this->expirationActionInstance;
     }
 
+    public function getPostType()
+    {
+        $postType = parent::getPostType();
+
+        if (empty($postType)) {
+            $args = $this->actionArgsModel->getArgs();
+
+            if (! empty($args['post_type'])) {
+                $postType = $args['post_type'];
+            }
+        }
+
+        return $postType;
+    }
+
+    public function getTitle()
+    {
+        $title = parent::getTitle();
+
+        if (empty($title)) {
+            $args = $this->actionArgsModel->getArgs();
+
+            if (! empty($args['post_title'])) {
+                $title = $args['post_title'];
+            }
+        }
+
+        return $title;
+    }
+
 
     /**
      * @param \PublishPress\Future\Modules\Expirator\Interfaces\ActionableInterface $expirationAction
@@ -548,20 +599,20 @@ class ExpirablePostModel extends PostModel
         $emailBody = str_replace('##POSTTITLE##', $this->getTitle(), $emailBody);
         $emailBody = str_replace('##POSTLINK##', $this->getPermalink(), $emailBody);
 
-        // Replace the expiration date with the action date using the old placebolder
+        // Replace the expiration date with the action date using the old placeholder
         $emailBody = str_replace(
             '##EXPIRATIONDATE##',
             get_date_from_gmt(
-                gmdate('Y-m-d H:i:s', $this->getExpirationDate()),
+                gmdate('Y-m-d H:i:s', $this->getExpirationDateAsUnixTime()),
                 $dateTimeFormat
             ),
             $emailBody
         );
-        // Replace the expiration date with the action date using the new placebolder
+        // Replace the expiration date with the action date using the new placeholder
         $emailBody = str_replace(
             '##ACTIONDATE##',
             get_date_from_gmt(
-                gmdate('Y-m-d H:i:s', $this->getExpirationDate()),
+                gmdate('Y-m-d H:i:s', $this->getExpirationDateAsUnixTime()),
                 $dateTimeFormat
             ),
             $emailBody

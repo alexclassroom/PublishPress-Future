@@ -19,15 +19,19 @@
     const {apiFetch} = wp;
 
     const debugLog = (description, ...message) => {
-        if (console && config.is_debug_enabled) {
+        if (console && config.isDebugEnabled) {
             console.debug('[Future]', description, ...message);
         }
+    }
+
+    const getCurrentTime = () => {
+        return (new Date()).getTime()/1000;
     }
 
     const getDefaultState = () => {
         let defaultState = {
             futureAction: null,
-            futureActionDate: 0,
+            futureActionDate: getCurrentTime(),
             futureActionEnabled: false,
             futureActionTerms: [],
             futureActionTaxonomy: null,
@@ -37,30 +41,30 @@
             isFetchingTerms: false,
         }
 
-        if (! config || ! config.defaults) {
+        if (! config || ! config.postTypeDefaultConfig) {
             return defaultState;
         }
 
-        if (config.defaults.autoEnable) {
+        if (config.postTypeDefaultConfig.autoEnable) {
             defaultState.futureActionEnabled = true;
         }
 
-        if (config.defaults.expireType) {
-            defaultState.futureAction = config.defaults.expireType;
+        if (config.postTypeDefaultConfig.expireType) {
+            defaultState.futureAction = config.postTypeDefaultConfig.expireType;
         }
 
-        if (config.default_date) {
-            defaultState.futureActionDate = parseInt(config.default_date);
+        if (config.defaultDate) {
+            defaultState.futureActionDate = parseInt(config.defaultDate);
         } else {
-            defaultState.futureActionDate = new Date().getTime();
+            defaultState.futureActionDate = getCurrentTime();
         }
 
-        if (config.defaults.taxonomy) {
-            defaultState.futureActionTaxonomy = config.defaults.taxonomy;
+        if (config.postTypeDefaultConfig.taxonomy) {
+            defaultState.futureActionTaxonomy = config.postTypeDefaultConfig.taxonomy;
         }
 
-        if (config.defaults.terms) {
-            defaultState.futureActionTerms = config.defaults.terms.split(',').map(term => parseInt(term));
+        if (config.postTypeDefaultConfig.terms) {
+            defaultState.futureActionTerms = config.postTypeDefaultConfig.terms.split(',').map(term => parseInt(term));
         }
 
         return defaultState;
@@ -179,14 +183,6 @@
                 return state.futureAction;
             },
             getFutureActionDate(state) {
-                // let date = new Date();
-                // let browserTimezoneOffset = date.getTimezoneOffset() * 60;
-                // let wpTimezoneOffset = config.timezone_offset * 60;
-
-                // date.setTime((storedDate + browserTimezoneOffset + wpTimezoneOffset) * 1000);
-                // date.setTime(state.futureActionDate * 1000);
-                //
-                // return date.getTime()/1000;
                 return state.futureActionDate;
             },
             getFutureActionEnabled(state) {
@@ -216,7 +212,7 @@
     register(store);
 
     // Step 2: Create the component
-    const MyPluginDocumentSettingPanel = () => {
+    const FutureActionSettingPanel = () => {
         const futureAction = useSelect((select) => select('publishpress-future/store').getFutureAction(), []);
         const futureActionDate = useSelect((select) => select('publishpress-future/store').getFutureActionDate(), []);
         const futureActionEnabled = useSelect((select) => select('publishpress-future/store').getFutureActionEnabled(), []);
@@ -296,20 +292,17 @@
             editPostAttribute({'terms': value});
         }
 
-        const getPostId = () => {
-            return select('core/editor').getCurrentPostId();
-        }
-
         const getPostType = () => {
             return select('core/editor').getCurrentPostType();
         }
 
         const fetchFutureActionData = (callback) => {
             const data = select('core/editor').getEditedPostAttribute('publishpress_future_action');
+            debugLog('fetchFutureActionData', data);
 
             setFutureActionEnabled(data.enabled).then(callback);
             setFutureAction(data.action);
-            setFutureActionDate(data.date);
+            setFutureActionDate((new Date(data.date)).getTime()/1000);
             setFutureActionTerms(data.terms);
             setFutureActionTaxonomy(data.taxonomy);
         }
@@ -332,6 +325,7 @@
                     path: addQueryArgs('wp/v2/categories', {per_page: -1}),
                 }).then((list) => {
                     debugLog('list', list);
+
                     list.forEach(cat => {
                         termsListByName[cat.name] = cat;
                         termsListById[cat.id] = cat.name;
@@ -347,9 +341,9 @@
                 apiFetch({
                     path: addQueryArgs(`publishpress-future/v1/taxonomies/` + postType),
                 }).then((response) => {
-                    debugLog('taxonomies', response.taxonomies);
+                    debugLog('response', response);
 
-                    if (response.taxonomies.length > 0) {
+                    if (parseInt(response.count) > 0) {
                         apiFetch({
                             path: addQueryArgs(`wp/v2/taxonomies/${futureActionTaxonomy}`, {context: 'edit', per_page: -1}),
                         }).then((taxAttributes) => {
@@ -384,7 +378,8 @@
                     date: futureActionDate,
                     action: futureAction,
                     terms: futureActionTerms,
-                    taxonomy: futureActionTaxonomy
+                    taxonomy: futureActionTaxonomy,
+                    browser_timezone_offset: new Date().getTimezoneOffset()
                 }
             };
 
@@ -426,8 +421,12 @@
             }
         }
 
+        const currentDate = futureActionDate;
+        debugLog('futureActionDate', futureActionDate);
+        debugLog('currentDate', currentDate);
+
         return (
-            <PluginDocumentSettingPanel title={config.strings.postExpirator} icon="calendar"
+            <PluginDocumentSettingPanel title={config.strings.panelTitle} icon="calendar"
                                         initialOpen={futureActionEnabled} className={'post-expirator-panel'}
             >
                 <PanelRow>
@@ -439,19 +438,19 @@
                 </PanelRow>
                 {futureActionEnabled && (
                     <Fragment>
-                        <PanelRow>
+                        <PanelRow className={'future-action-date-panel'}>
                             <DateTimePicker
-                                currentDate={futureActionDate*1000}
+                                currentDate={currentDate*1000}
                                 onChange={handleDateChange}
                                 __nextRemoveHelpButton={true}
-                                is12Hour={config.is_12_hours}
-                                startOfWeek={config.start_of_week}
+                                is12Hour={config.is12hours}
+                                startOfWeek={config.startOfWeek}
                             />
                         </PanelRow>
                         <SelectControl
-                            label={config.strings.howToExpire}
+                            label={config.strings.action}
                             value={futureAction}
-                            options={config.actions_options}
+                            options={config.actionsSelectOptions}
                             onChange={handleActionChange}
                         />
 
@@ -463,18 +462,22 @@
                                         <Spinner/>
                                     </Fragment>
                                 )
-                                || (
-                                    isEmpty(keys(termsListByName)) && (
-                                        <p><i className="dashicons dashicons-warning"></i> {config.strings.noTermsFound}</p>
+                                || (! futureActionTaxonomy && (
+                                        <p><i className="dashicons dashicons-warning"></i> {config.strings.noTaxonomyFound}</p>
                                     )
                                     || (
-                                        <FormTokenField
-                                            label={config.strings.expirationCategories + ` (${futureActionTaxonomy})`}
-                                            value={selectedTerms}
-                                            suggestions={Object.keys(termsListByName)}
-                                            onChange={handleTermsChange}
-                                            maxSuggestions={10}
-                                        />
+                                        isEmpty(keys(termsListByName)) && (
+                                            <p><i className="dashicons dashicons-warning"></i> {config.strings.noTermsFound}</p>
+                                        )
+                                        || (
+                                            <FormTokenField
+                                                label={config.taxonomyName}
+                                                value={selectedTerms}
+                                                suggestions={Object.keys(termsListByName)}
+                                                onChange={handleTermsChange}
+                                                maxSuggestions={10}
+                                            />
+                                        )
                                     )
                                 )
                             )
@@ -485,9 +488,8 @@
         );
     };
 
-    // Step 3: Connect the component to the Redux store
     registerPlugin('publishpress-future-action', {
-        render: MyPluginDocumentSettingPanel
+        render: FutureActionSettingPanel
     });
 
 })(window.wp, window.postExpiratorPanelConfig);

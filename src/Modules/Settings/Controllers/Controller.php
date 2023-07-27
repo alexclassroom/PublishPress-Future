@@ -128,16 +128,8 @@ class Controller implements InitializableInterface
             [$this, 'processFormSubmission']
         );
         $this->hooks->addAction(
-            CoreAbstractHooks::ACTION_ADMIN_INIT,
-            [$this, 'processToolsActions']
-        );
-        $this->hooks->addAction(
             CoreAbstractHooks::ACTION_INIT,
             [$this, 'initMigrations']
-        );
-        $this->hooks->addAction(
-            CoreAbstractHooks::ACTION_ADMIN_NOTICES,
-            [$this, 'displayAdminNotices']
         );
     }
 
@@ -232,21 +224,23 @@ class Controller implements InitializableInterface
                             'Select whether the PublishPress Future is enabled for all new posts.',
                             'post-expirator'
                         ),
-                        'fieldTaxonomy' => __('Taxonomy (hierarchical)', 'post-expirator'),
+                        'fieldTaxonomy' => __('Taxonomy (Hierarchical)', 'post-expirator'),
                         'noItemsfound' => __('No taxonomies found', 'post-expirator'),
                         'fieldTaxonomyDescription' => __(
                             'Select the hierarchical taxonomy and terms to be used for taxonomy based expiration.',
                             'post-expirator'
                         ),
-                        'fieldWhoToNotify' => __('Who to notify', 'post-expirator'),
+                        'fieldWhoToNotify' => __('Who to Notify', 'post-expirator'),
                         'fieldWhoToNotifyDescription' => __(
                             'Enter a comma separate list of emails that you would like to be notified when the action runs.',
                             'post-expirator'
                         ),
-                        'fieldDefaultDateTimeOffset' => __('Default date/time offset', 'post-expirator'),
+                        'fieldDefaultDateTimeOffset' => __('Default Date/Time Offset', 'post-expirator'),
                         'fieldDefaultDateTimeOffsetDescription' => sprintf(
+                            // translator: Please, do not translate the date format text, since PHP will not be able to calculate using non-english terms.
                             esc_html__(
-                                'Set the offset to use for the default action date and time. For information on formatting, see %1$s. For example, you could enter %2$s+1 month%3$s or %4$s+1 week 2 days 4 hours 2 seconds%5$s or %6$snext Thursday%7$s.',
+                                'Set the offset to use for the default action date and time. For information on formatting, see %1$s
+                                    . For example, you could enter %2$s+1 month%3$s or %4$s+1 week 2 days 4 hours 2 seconds%5$s or %6$snext Thursday%7$s. Please, use only terms in English.',
                                 'post-expirator'
                             ),
                             '<a href="http://php.net/manual/en/function.strtotime.php" target="_new">' . esc_html__(
@@ -282,11 +276,9 @@ class Controller implements InitializableInterface
             'general',
             'defaults',
             'display',
-            'editor',
             'diagnostics',
             'viewdebug',
             'advanced',
-            'tools'
         );
 
         $allowedTabs = apply_filters(SettingsHooksAbstract::FILTER_ALLOWED_TABS, $allowedTabs);
@@ -316,122 +308,6 @@ class Controller implements InitializableInterface
         }
 
         $this->hooks->doAction(SettingsHooksAbstract::ACTION_SAVE_TAB . $tab);
-    }
-
-    public function processToolsActions()
-    {
-        if (empty($_GET['action'])) {
-            return;
-        }
-
-        if ($_GET['action'] === 'future_migrate_legacy_post_expirations') {
-            if (! isset($_GET['nonce']) || ! \wp_verify_nonce(
-                    \sanitize_key($_GET['nonce']),
-                    'future-migrate-legacy-post-expirations'
-                )) {
-                wp_die(esc_html__('Form Validation Failure: Sorry, your nonce did not verify.', 'post-expirator'));
-            }
-
-            $this->cron->enqueueAsyncAction(V30000WPCronToActionsScheduler::HOOK, [], true);
-
-            wp_redirect(
-                admin_url(
-                    'admin.php?page=publishpress-future&tab=tools&message=legacy_post_expirations_migration_scheduled'
-                )
-            );
-            exit;
-        }
-
-        if ($_GET['action'] === 'future_restore_legacy_action_arguments') {
-            if (! isset($_GET['nonce']) || ! \wp_verify_nonce(
-                    \sanitize_key($_GET['nonce']),
-                    'future-restore-legacy-action-arguments'
-                )) {
-                wp_die(esc_html__('Form Validation Failure: Sorry, your nonce did not verify.', 'post-expirator'));
-            }
-
-            $this->cron->enqueueAsyncAction(V30001RestorePostMeta::HOOK, [], true);
-
-            wp_redirect(
-                admin_url(
-                    'admin.php?page=publishpress-future&tab=tools&message=legacy_post_expirations_data_restored'
-                )
-            );
-            exit;
-        }
-
-        if ($_GET['action'] === 'future_fix_db_schema') {
-            if (! isset($_GET['nonce']) || ! \wp_verify_nonce(
-                    \sanitize_key($_GET['nonce']),
-                    'future-fix-db-schema'
-                )) {
-                wp_die(esc_html__('Form Validation Failure: Sorry, your nonce did not verify.', 'post-expirator'));
-            }
-
-            ActionArgsSchema::createTableIfNotExists();
-
-            if (ActionArgsSchema::tableExists()) {
-                // phpcs:ignore WordPressVIPMinimum.Security.ExitAfterRedirect.NoExit
-                wp_redirect(
-                    admin_url(
-                        'admin.php?page=publishpress-future&tab=diagnostics&message=db_schema_fixed'
-                    )
-                );
-            } else {
-                // phpcs:ignore WordPressVIPMinimum.Security.ExitAfterRedirect.NoExit
-                wp_redirect(
-                    admin_url(
-                        'admin.php?page=publishpress-future&tab=diagnostics&message=db_schema_not_fixed'
-                    )
-                );
-            }
-            exit;
-        }
-    }
-
-    public function displayAdminNotices()
-    {
-        // phpcs:disable WordPress.Security.NonceVerification.Recommended
-        if (empty($_GET['message'])) {
-            return;
-        }
-
-        switch ($_GET['message']) {
-            case 'legacy_post_expirations_migration_scheduled':
-                $message = __(
-                    'The legacy future actions migration has been scheduled and will run asynchronously.',
-                    'post-expirator'
-                );
-                break;
-
-            case 'legacy_post_expirations_data_restored':
-                $message = __(
-                    'The legacy actions arguments restoration has been scheduled and will run asynchronously.',
-                    'post-expirator'
-                );
-                break;
-
-            case 'db_schema_fixed':
-                $message = __(
-                    'The database schema was fixed.',
-                    'post-expirator'
-                );
-                break;
-
-            case 'db_schema_not_fixed':
-                $message = __(
-                    'The database schema could not be fixed. Please, contact the support team.',
-                    'post-expirator'
-                );
-                break;
-            default:
-                $message = '';
-        }
-
-        if (! empty($message)) {
-            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html($message) . '</p></div>';
-        }
-        // phpcs:enable WordPress.Security.NonceVerification.Recommended
     }
 
     public function initMigrations()

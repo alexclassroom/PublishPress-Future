@@ -44,7 +44,7 @@ class ActionArgsSchema
             scheduled_date datetime NOT NULL,
             created_at datetime NOT NULL,
             args varchar(250) NOT NULL,
-            PRIMARY KEY (id),
+            PRIMARY KEY  (id),
             KEY post_id (post_id, id),
             KEY enabled_post_id (post_id, enabled, id),
             KEY cron_action_id (cron_action_id, id),
@@ -55,7 +55,16 @@ class ActionArgsSchema
             require_once ABSPATH . 'wp-admin/includes/upgrade.php';
         }
 
-        dbDelta($sql);
+        // We are forced to suppress errors here because dbDelta() will run a "DESCRIBE"
+        // query on the table that do not exist yet, and that will trigger an error.
+        $suppressErrors = $wpdb->suppress_errors(true);
+        $result = dbDelta($sql);
+        $wpdb->suppress_errors($suppressErrors);
+
+        if (! empty($result)) {
+            // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+            error_log('PUBLISHPRESS FUTURE: Result of creating table ' . self::getTableName() . ': ' . implode("\n", $result));
+        }
     }
 
     public static function dropTableIfExists()

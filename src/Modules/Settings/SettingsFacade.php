@@ -153,6 +153,10 @@ class SettingsFacade
             (array)$this->options->getOption('expirationdateDefaults' . ucfirst($postType))
         );
 
+        if (empty($defaults['expireType'])) {
+            $defaults['expireType'] = 'draft';
+        }
+
         if ($defaults['default-expire-type'] === 'null' || empty($defaults['default-expire-type'])) {
             $defaults['default-expire-type'] = 'inherit';
         }
@@ -172,6 +176,7 @@ class SettingsFacade
 
     /**
      * @return mixed
+     * @deprecated Use getDefaultDateCustom() instead
      */
     public function getDefaultDate()
     {
@@ -180,8 +185,14 @@ class SettingsFacade
 
     /**
      * @return mixed
+     * @deprecated Use getGeneralDateTimeOffset() instead
      */
     public function getDefaultDateCustom()
+    {
+        return $this->getGeneralDateTimeOffset();
+    }
+
+    public function getGeneralDateTimeOffset()
     {
         $defaultDateOption = $this->options->getOption('expirationdateDefaultDateCustom');
 
@@ -190,5 +201,10 @@ class SettingsFacade
         }
 
         return $defaultDateOption;
+    }
+
+    public function getColumnStyle()
+    {
+        return $this->options->getOption('expirationdateColumnStyle', 'verbose');
     }
 }

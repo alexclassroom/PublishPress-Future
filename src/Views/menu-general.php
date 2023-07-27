@@ -18,7 +18,7 @@ $expiredemailnotificationlist = get_option('expirationdateEmailNotificationList'
 $container = \PublishPress\Future\Core\DI\Container::getInstance();
 $settingsFacade = $container->get(\PublishPress\Future\Core\DI\ServicesAbstract::SETTINGS);
 
-$expirationdateDefaultDateCustom = $settingsFacade->getDefaultDateCustom();
+$expirationdateDefaultDateCustom = $settingsFacade->getGeneralDateTimeOffset();
 
 $categories = get_option('expirationdateCategoryDefaults');
 
@@ -98,7 +98,7 @@ $plugin_facade = PostExpirator_Facade::getInstance();
                 </tr>
                 <tr valign="top">
                     <th scope="row"><label for="expired-default-expiration-date"><?php
-                            esc_html_e('Default date/time offset', 'post-expirator'); ?></label></th>
+                            esc_html_e('Default Date/Time Offset', 'post-expirator'); ?></label></th>
                     <td>
                         <div id="expired-custom-container" class="pe-custom-date-container">
                             <input type="text" value="<?php
@@ -106,8 +106,10 @@ $plugin_facade = PostExpirator_Facade::getInstance();
                                    id="expired-custom-expiration-date"/>
                             <p class="description"><?php
                                 echo sprintf(
+                                        // translator: Please, do not translate the date format text, since PHP will not be able to calculate using non-english terms.
                                     esc_html__(
-                                        'Set the offset to use for the default action date and time. For information on formatting, see %1$s. For example, you could enter %2$s+1 month%3$s or %4$s+1 week 2 days 4 hours 2 seconds%5$s or %6$snext Thursday%7$s.',
+                                        'Set the offset to use for the default action date and time. For information on formatting, see %1$s
+                                        . For example, you could enter %2$s+1 month%3$s or %4$s+1 week 2 days 4 hours 2 seconds%5$s or %6$snext Thursday%7$s. Please, use only terms in English.',
                                         'post-expirator'
                                     ),
                                     '<a href="http://php.net/manual/en/function.strtotime.php" target="_new">' . esc_html__('PHP strtotime function', 'post-expirator') . '</a>',
@@ -184,7 +186,7 @@ $plugin_facade = PostExpirator_Facade::getInstance();
                 <tr valign="top">
                     <th scope="row"><label
                                 for="expired-email-notification-list"><?php
-                            esc_html_e('Who to notify', 'post-expirator'); ?></label>
+                            esc_html_e('Who to Notify', 'post-expirator'); ?></label>
                     </th>
                     <td>
                         <input class="large-text" type="text" name="expired-email-notification-list"

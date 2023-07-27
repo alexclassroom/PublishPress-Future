@@ -101,10 +101,10 @@ class ActionArgsModel
     }
 
     /**
-     * @param int $actionid
+     * @param int $actionId
      * @return bool
      */
-    public function loadByActionId($actionid)
+    public function loadByActionId($actionId)
     {
         global $wpdb;
 
@@ -113,7 +113,7 @@ class ActionArgsModel
             $wpdb->prepare(
                 // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
                 "SELECT * FROM {$this->tableName} WHERE cron_action_id = %d LIMIT 1",
-                $actionid
+                $actionId
             )
         );
 
@@ -138,7 +138,7 @@ class ActionArgsModel
         $row = $wpdb->get_row(
             $wpdb->prepare(
                 // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-                "SELECT * FROM {$this->tableName} WHERE enabled = 1 AND post_id = %d LIMIT 1",
+                "SELECT * FROM {$this->tableName} WHERE post_id = %d ORDER BY enabled DESC, id DESC LIMIT 1",
                 $postId
             )
         );
@@ -402,7 +402,7 @@ class ActionArgsModel
      */
     public function setScheduledDateFromUnixTime($scheduledDate)
     {
-        $this->scheduledDate = date('Y-m-d H:i:s', $scheduledDate);
+        $this->scheduledDate = gmdate('Y-m-d H:i:s', $scheduledDate);
         return $this;
     }
 }

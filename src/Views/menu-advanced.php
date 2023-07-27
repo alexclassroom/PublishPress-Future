@@ -1,6 +1,7 @@
 <?php
 
-use PublishPress\Future\Modules\Settings\HooksAbstract;
+use PublishPressFuture\Core\DI\Container;
+use PublishPressFuture\Core\DI\ServicesAbstract;
 
 defined('ABSPATH') or die('Direct access not allowed.');
 
@@ -9,6 +10,8 @@ $preserveData = (bool)get_option('expirationdatePreserveData', true);
 
 $user_roles = wp_roles()->get_names();
 $plugin_facade = PostExpirator_Facade::getInstance();
+$container = Container::getInstance();
+
 ?>
 <div class="pp-columns-wrapper<?php echo $showSideBar ? ' pp-enable-sidebar' : ''; ?>">
     <div class="pp-column-left">
@@ -50,9 +53,36 @@ $plugin_facade = PostExpirator_Facade::getInstance();
                     </td>
                 </tr>
                 <tr valign="top">
+                    <th scope="row"><?php
+                        esc_html_e('Future Action Column Style', 'post-expirator'); ?></th>
+                    <td>
+                        <?php
+                        $columnStyle = $container->get(ServicesAbstract::SETTINGS)->getColumnStyle();
+                        ?>
+                        <input type="radio" name="future-action-column-style"
+                               id="future-action-column-style-verbose"
+                               value="verbose" <?php
+                        echo $columnStyle === 'verbose' ? 'checked' : ''; ?>/>
+                        <label for="future-action-column-style-verbose"><?php
+                            esc_html_e('Detailed', 'post-expirator'); ?></label>
+                        &nbsp;&nbsp;
+                        <input type="radio" name="future-action-column-style"
+                               id="future-action-column-style-simple"
+                               value="simple" <?php
+                        echo $columnStyle === 'simple' ? 'checked' : ''; ?>/>
+                        <label for="future-action-column-style-simple"><?php
+                            esc_html_e('Simplified', 'post-expirator'); ?></label>
+                        <p class="description"><?php
+                            esc_html_e(
+                                '"Detailed" will display all information in the Future Action column. "Simplified" will display only the icon and date/time.',
+                                'post-expirator'
+                            ); ?></p>
+                    </td>
+                </tr>
+                <tr valign="top">
                     <th scope="row">
                         <?php
-                        esc_html_e('Choose which user roles can use PublishPress Future', 'post-expirator'); ?>
+                        esc_html_e('Choose Which User Roles Can Use PublishPress Future', 'post-expirator'); ?>
                     </th>
                     <td class="pe-checklist">
                         <?php
@@ -83,7 +113,7 @@ $plugin_facade = PostExpirator_Facade::getInstance();
                 <tr valign="top">
                     <th scope="row">
                         <?php
-                        esc_html_e('Preserve data after deactivating the plugin', 'post-expirator'); ?>
+                        esc_html_e('Preserve Data After Deactivating the Plugin', 'post-expirator'); ?>
                     </th>
                     <td>
                         <input type="radio" name="expired-preserve-data-deactivating"
