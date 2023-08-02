@@ -11,7 +11,12 @@ on:
   workflow_call:
 
   workflow_dispatch:
-
+    inputs:
+      debug_enabled_code_check:
+        type: boolean
+        description: 'Enable "tmate" debugging for the code check'
+        required: false
+        default: false
 jobs:
   check:
     name: Check the code
@@ -20,7 +25,15 @@ jobs:
       image: publishpress/dev-workspace-terminal:future-free
       options: -v ${{ github.workspace }}:/project --workdir="/project"
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup tmate session for Debugging, if inputs.debug_enabled_code_check is true
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ inputs.debug_enabled_code_check }}
+        timeout-minutes: 10
+        with:
+          detached: true
 
       - name: Validate composer.json and composer.lock
         run: composer validate

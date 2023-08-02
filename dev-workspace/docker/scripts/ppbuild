@@ -2,13 +2,13 @@
 
 start_time=$(date +%s)
 
-script_version="1.2.1"
+script_version="1.2.2"
 
 command=${1}
 source_path=$(pwd)
 scripts_path="${source_path}/dev-workspace/docker/scripts"
 dist_path="${source_path}/dist"
-cols=$(tput cols)
+cols=$(( ${#TERM} ? $(tput cols) : 80 ))
 
 #######################################
 # Get the plugin name from composer.json file.
@@ -162,8 +162,11 @@ show_time() {
 #   The repeated string.
 #######################################
 repeat() {
-    for ((c = 1; c <= "${2}"; c++)); do
-        echo -n "${1}"
+    local string="$1"
+    local times="${2:-1}"  # Use the second argument or set a default value of 1
+
+    for ((c = 1; c <= times; c++)); do
+        echo -n "$string"
     done
 }
 
@@ -177,7 +180,7 @@ echo_box_line() {
     local width=$cols
 
     # Calculate the number of fill characters needed
-    local fill_length=$(($width - ${#start_char} - ${#content} - ${#end_char}))
+    local fill_length=$(( $width - ${#start_char} - ${#content} - ${#end_char}))
     local fill=$(printf "%0.s$fill_char" $(seq 1 $fill_length))
 
     # Output the line
