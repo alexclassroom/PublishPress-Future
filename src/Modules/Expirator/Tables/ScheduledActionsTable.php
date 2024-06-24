@@ -12,7 +12,6 @@ use PublishPress\Future\Modules\Expirator\Adapters\CronToWooActionSchedulerAdapt
 use PublishPress\Future\Modules\Expirator\ExpirationActionsAbstract;
 use PublishPress\Future\Modules\Expirator\HooksAbstract;
 use PublishPress\Future\Modules\Expirator\Models\PostTypeModel;
-use PublishPress\Future\Modules\Expirator\Models\PostTypesModel;
 
 defined('ABSPATH') or die('Direct access not allowed.');
 
@@ -40,7 +39,7 @@ class ScheduledActionsTable extends \ActionScheduler_ListTable
 
         $this->hooks = $hooks;
 
-        $this->table_header = __('Future Actions', 'post-expirator');
+        $this->table_header = __('Scheduled Actions', 'post-expirator');
 
         unset($this->columns['group']);
         $this->columns['hook'] = __('Action', 'post-expirator');
@@ -385,6 +384,9 @@ class ScheduledActionsTable extends \ActionScheduler_ListTable
             $container = Container::getInstance();
             $argsModelFactory = $container->get(ServicesAbstract::ACTION_ARGS_MODEL_FACTORY);
 
+            /**
+             * @var \PublishPress\Future\Modules\Expirator\Interfaces\ActionArgsModelInterface
+             */
             $argsModel = $argsModelFactory();
             $argsModel->loadByActionId($row['ID']);
 
@@ -460,6 +462,9 @@ class ScheduledActionsTable extends \ActionScheduler_ListTable
         $container = Container::getInstance();
         $argsModelFactory = $container->get(ServicesAbstract::ACTION_ARGS_MODEL_FACTORY);
 
+        /**
+         * @var \PublishPress\Future\Modules\Expirator\Interfaces\ActionArgsModelInterface
+         */
         $argsModel = $argsModelFactory();
         $argsModel->loadByActionId($row['ID']);
 
@@ -498,6 +503,9 @@ class ScheduledActionsTable extends \ActionScheduler_ListTable
         $postModel = $factory($row['args']['postId']);
 
         $argsModelFactory = $container->get(ServicesAbstract::ACTION_ARGS_MODEL_FACTORY);
+        /**
+         * @var \PublishPress\Future\Modules\Expirator\Interfaces\ActionArgsModelInterface
+         */
         $argsModel = $argsModelFactory();
         $argsModel->loadByActionId($row['ID']);
 
@@ -772,6 +780,6 @@ class ScheduledActionsTable extends \ActionScheduler_ListTable
 	 * @since 3.1.0
 	 */
 	public function no_items() {
-        echo esc_html('No Future Actions.', 'post-expirator');
+        echo esc_html__('No Scheduled Actions.', 'post-expirator');
     }
 }

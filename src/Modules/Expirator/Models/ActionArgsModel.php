@@ -6,12 +6,15 @@
 namespace PublishPress\Future\Modules\Expirator\Models;
 
 use PublishPress\Future\Modules\Expirator\ExpirationActionsAbstract;
+use PublishPress\Future\Modules\Expirator\Interfaces\ActionArgsModelInterface;
 use PublishPress\Future\Modules\Expirator\Schemas\ActionArgsSchema;
 
 defined('ABSPATH') or die('Direct access not allowed.');
 
-class ActionArgsModel
+class ActionArgsModel implements ActionArgsModelInterface
 {
+    private const DATE_FORMAT_ISO_8601 = 'Y-m-d H:i:s';
+
     /**
      * @var int
      */
@@ -94,11 +97,7 @@ class ActionArgsModel
         }
     }
 
-    /**
-     * @param int $id
-     * @return bool
-     */
-    public function load($id)
+    public function load(int $id): bool
     {
         global $wpdb;
 
@@ -118,11 +117,7 @@ class ActionArgsModel
         return is_object($row);
     }
 
-    /**
-     * @param int $actionId
-     * @return bool
-     */
-    public function loadByActionId($actionId)
+    public function loadByActionId(int $actionId): bool
     {
         global $wpdb;
 
@@ -142,13 +137,7 @@ class ActionArgsModel
         return is_object($row);
     }
 
-    /**
-     * Load the enabled action by post ID. We can have only one enabled per post.
-     *
-     * @param int $postId
-     * @return bool
-     */
-    public function loadByPostId($postId, $filterEnabled = false)
+    public function loadByPostId(int $postId, bool $filterEnabled = false): bool
     {
         global $wpdb;
 
@@ -180,7 +169,7 @@ class ActionArgsModel
         return is_object($row);
     }
 
-    public function save()
+    public function save(): void
     {
         global $wpdb;
 
@@ -203,10 +192,7 @@ class ActionArgsModel
         );
     }
 
-    /**
-     * @return int
-     */
-    public function insert()
+    public function insert(): int
     {
         global $wpdb;
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
@@ -227,9 +213,8 @@ class ActionArgsModel
 
     /**
      * @param int|null $postId
-     * @return void
      */
-    public function disableAllForPost($postId = null)
+    public function disableAllForPost($postId = null): void
     {
         global $wpdb;
 
@@ -249,7 +234,7 @@ class ActionArgsModel
         );
     }
 
-    public function delete()
+    public function delete(): void
     {
         global $wpdb;
 
@@ -262,10 +247,7 @@ class ActionArgsModel
         );
     }
 
-    /**
-     * @return int
-     */
-    public function getId()
+    public function getId(): int
     {
         return absint($this->id);
     }
@@ -273,44 +255,27 @@ class ActionArgsModel
     /**
      * @return int
      */
-    public function getCronActionId()
+    public function getCronActionId(): int
     {
         return absint($this->cronActionId);
     }
 
-    /**
-     * @param int $cronActionId
-     * @return ActionArgsModel
-     */
-    public function setCronActionId($cronActionId)
+    public function setCronActionId(int $cronActionId): void
     {
         $this->cronActionId = $cronActionId;
-        return $this;
     }
 
-
-    /**
-     * @return int
-     */
-    public function getPostId()
+    public function getPostId(): int
     {
         return (int)$this->postId;
     }
 
-    /**
-     * @param int $postId
-     * @return ActionArgsModel
-     */
-    public function setPostId($postId)
+    public function setPostId(int $postId): void
     {
         $this->postId = $postId;
-        return $this;
     }
 
-    /**
-     * @return array
-     */
-    public function getArgs()
+    public function getArgs(): array
     {
         return (array)$this->args;
     }
@@ -320,15 +285,12 @@ class ActionArgsModel
         return isset($this->args[$key]) ? $this->args[$key] : '';
     }
 
-    public function getAction()
+    public function getAction(): string
     {
         return isset($this->args['expireType']) ? $this->args['expireType'] : '';
     }
 
-    /**
-     * @return string
-     */
-    public function getActionLabel($postType = '')
+    public function getActionLabel(string $postType = ''): string
     {
         $label = $this->expirationActionsModel->getLabelForAction($this->getAction(), $postType);
 
@@ -339,10 +301,7 @@ class ActionArgsModel
         return $label;
     }
 
-    /**
-     * @return array
-     */
-    public function getTaxonomyTerms()
+    public function getTaxonomyTerms(): array
     {
         $terms = isset($this->args['category']) ? $this->args['category'] : [];
 
@@ -353,15 +312,12 @@ class ActionArgsModel
         return $terms;
     }
 
-    public function getTaxonomy()
+    public function getTaxonomy(): string
     {
         return isset($this->args['categoryTaxonomy']) ? $this->args['categoryTaxonomy'] : '';
     }
 
-    /**
-     * @return array
-     */
-    public function getTaxonomyTermsNames()
+    public function getTaxonomyTermsNames(): array
     {
         $terms = $this->getTaxonomyTerms();
 
@@ -376,97 +332,88 @@ class ActionArgsModel
         return $names;
     }
 
-    /**
-     * @param array $args
-     * @return ActionArgsModel
-     */
-    public function setArgs($args)
+    public function setArgs(array $args): void
     {
         $this->args = $args;
-        return $this;
     }
 
-    /**
-     * @param string $key
-     * @param mixed $value
-     * @return ActionsArgsModel
-     */
-    public function setArg(string $key, $value)
+    public function setArg(string $key, $value): void
     {
         $this->args[$key] = $value;
-        return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getCreatedAt()
+    public function getCreatedAt(): string
     {
         return (string)$this->createdAt;
     }
 
-    /**
-     * @param string $createdAt
-     * @return ActionArgsModel
-     */
-    public function setCreatedAt($createdAt)
+    public function setCreatedAt(string $createdAt): void
     {
         $this->createdAt = $createdAt;
-        return $this;
     }
 
     /**
-     * @return string
+     * @deprecated version 3.4.0, use getScheduledDateAsISO8601 or getScheduledDateAsUnixTime
      */
-    public function getScheduledDate()
+    public function getScheduledDate(): string
     {
+        return $this->getScheduledDateAsISO8601();
+    }
+
+    public function getScheduledDateAsISO8601(): string
+    {
+        if (is_numeric($this->scheduledDate)) {
+            $this->scheduledDate = $this->convertUnixTimeDateToISO8601((int)$this->scheduledDate);
+        }
+
         return (string)$this->scheduledDate;
     }
 
-    /**
-     * @param bool $enabled
-     * @return $this
-     */
-    public function setEnabled($enabled)
+    public function setEnabled(bool $enabled): void
     {
         $this->enabled = $enabled;
-        return $this;
     }
 
-    /**
-     * @return bool
-     */
-    public function getEnabled()
+    public function getEnabled(): bool
     {
         return (bool)$this->enabled;
     }
 
-    /**
-     * @return int
-     */
-    public function getScheduledDateAsUnixTime()
+    public function getScheduledDateAsUnixTime(): int
     {
-        // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
-        return date('U', strtotime($this->getScheduledDate()));
+        return $this->convertISO8601DateToUnixTime($this->getScheduledDateAsISO8601());
     }
 
     /**
-     * @param string $scheduledDate
-     * @return ActionArgsModel
+     * @deprecated version 3.4.0, use setScheduledDateFromISO8601 or setScheduledDateFromUnixTime
      */
-    public function setScheduledDate($scheduledDate)
+    public function setScheduledDate(string $scheduledDate): void
+    {
+        if (is_numeric($scheduledDate)) {
+            $scheduledDate = $this->convertUnixTimeDateToISO8601((int)$scheduledDate);
+        }
+
+        $this->setScheduledDateFromISO8601($scheduledDate);
+    }
+
+    public function setScheduledDateFromISO8601(string $scheduledDate): void
     {
         $this->scheduledDate = $scheduledDate;
-        return $this;
     }
 
-    /**
-     * @param int $scheduledDate
-     * @return ActionArgsModel
-     */
-    public function setScheduledDateFromUnixTime($scheduledDate)
+    public function setScheduledDateFromUnixTime(int $scheduledDate): void
     {
-        $this->scheduledDate = gmdate('Y-m-d H:i:s', $scheduledDate);
-        return $this;
+        $this->scheduledDate = $this->convertUnixTimeDateToISO8601($scheduledDate);
+    }
+
+    public function convertUnixTimeDateToISO8601(int $date): string
+    {
+        // phpcs:ignore WordPress.DateTime.RestrictedFunctions.date_date
+        return date(self::DATE_FORMAT_ISO_8601, $date);
+    }
+
+    public function convertISO8601DateToUnixTime(string $date): int
+    {
+        return (int) strtotime($date);
     }
 }
