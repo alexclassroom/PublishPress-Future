@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (c) 2022. PublishPress, All rights reserved.
+ * Copyright (c) 2024, Ramble Ventures
  */
 
 namespace PublishPress\Future\Core;
@@ -10,7 +10,6 @@ use PublishPress\Future\Core\DI\Container;
 use PublishPress\Future\Core\DI\ServicesAbstract;
 use PublishPress\Future\Framework\InitializableInterface;
 use PublishPress\Future\Framework\ModuleInterface as ModuleInterface;
-use PublishPress\Future\Framework\WordPress\Facade\NoticeFacade;
 use PublishPress\Future\Framework\WordPress\Facade\NoticeInterface;
 use PublishPress\Future\Modules\Expirator\Controllers\PluginsListController;
 use PublishPress\Future\Modules\Expirator\HooksAbstract as ExpiratorHooks;
@@ -21,7 +20,7 @@ use PublishPress\Future\Modules\Expirator\Migrations\V30001RestorePostMeta;
 use PublishPress\Future\Modules\Expirator\Migrations\V30104ArgsColumnLength;
 use PublishPress\Future\Modules\Expirator\PostMetaAbstract;
 use PublishPress\Future\Modules\Settings\SettingsFacade;
-use WpOrg\Requests\Hooks;
+use PublishPress\Future\Modules\Workflows\Migrations\V40000WorkflowScheduledStepsSchema;
 
 defined('ABSPATH') or die('Direct access not allowed.');
 
@@ -111,6 +110,8 @@ class Plugin implements InitializableInterface
         $this->notices->init();
 
         $this->initializeModules();
+
+        $this->hooks->doAction(HooksAbstract::ACTION_AFTER_INIT_PLUGIN);
     }
 
     private function initializeModules()
@@ -153,7 +154,9 @@ class Plugin implements InitializableInterface
         $version = get_option('postexpiratorVersion');
 
         if ($version === false) {
+            // Fresh install. Run migrations that create the DB tables.
             $container->get(ServicesAbstract::HOOKS)->doAction(V30000ActionArgsSchema::HOOK);
+            $container->get(ServicesAbstract::HOOKS)->doAction(V40000WorkflowScheduledStepsSchema::HOOK);
         } else {
             if (version_compare($version, '1.6.1') === -1) {
                 update_option('expirationdateDefaultDate', POSTEXPIRATOR_EXPIREDEFAULT);
@@ -240,7 +243,11 @@ class Plugin implements InitializableInterface
 
             if (version_compare($version, '3.0.1') === -1) {
                 if (! get_option('pp_future_V30001RestorePostMeta')) {
-                    $container->get(ServicesAbstract::CRON)->enqueueAsyncAction(V30001RestorePostMeta::HOOK, [], true);
+                    $container->get(ServicesAbstract::CRON)->enqueueAsyncAction(
+                        V30001RestorePostMeta::HOOK,
+                        [],
+                        true
+                    );
 
                     update_option('pp_future_V30001RestorePostMeta', true);
                 }
@@ -248,10 +255,20 @@ class Plugin implements InitializableInterface
 
             if (version_compare($version, '3.1.4') === -1) {
                 if (! get_option('pp_future_V30104ArgsColumnLength')) {
-                    $container->get(ServicesAbstract::CRON)->enqueueAsyncAction(V30104ArgsColumnLength::HOOK, [], true);
+                    $container->get(ServicesAbstract::CRON)->enqueueAsyncAction(
+                        V30104ArgsColumnLength::HOOK,
+                        [],
+                        true
+                    );
 
                     update_option('pp_future_V30104ArgsColumnLength', true);
                 }
+            }
+
+            if (version_compare($version, '4.0.0', '<')) {
+                $container->get(ServicesAbstract::HOOKS)->doAction(
+                    V40000WorkflowScheduledStepsSchema::HOOK
+                );
             }
         }
 
@@ -342,5 +359,15 @@ class Plugin implements InitializableInterface
         }
 
         $submenu['publishpress-future'] = $futureMenu;
+    }
+
+    public static function getScriptUrl($script)
+    {
+        $extension = (defined('SCRIPT_DEBUG') && SCRIPT_DEBUG) ? '.js' : '.min.js';
+
+        $container = Container::getInstance();
+        $baseUrl = $container->get(ServicesAbstract::BASE_URL);
+
+        return $baseUrl . 'assets/js/' . $script . $extension;
     }
 }

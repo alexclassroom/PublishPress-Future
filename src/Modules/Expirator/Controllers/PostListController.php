@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (c) 2022. PublishPress, All rights reserved.
+ * Copyright (c) 2024, Ramble Ventures
  */
 
 namespace PublishPress\Future\Modules\Expirator\Controllers;
@@ -189,7 +189,7 @@ class PostListController implements InitializableInterface
                 'postexpirator-edit',
                 POSTEXPIRATOR_BASEURL . 'assets/css/edit.css',
                 false,
-                POSTEXPIRATOR_VERSION
+                PUBLISHPRESS_FUTURE_VERSION
             );
         }
     }
