@@ -6,12 +6,13 @@ use PublishPress\Future\Core\HookableInterface;
 use PublishPress\Future\Core\HooksAbstract as FutureCoreHooksAbstract;
 use PublishPress\Future\Framework\InitializableInterface;
 use PublishPress\Future\Core\HooksAbstract as CoreHooksAbstract;
-use PublishPress\Future\Core\Plugin;
 use PublishPress\Future\Modules\Workflows\HooksAbstract;
 use PublishPress\Future\Modules\Workflows\Interfaces\NodeTypesModelInterface;
 use PublishPress\Future\Modules\Workflows\Models\NodeTypesModel;
 use PublishPress\Future\Modules\Workflows\Models\WorkflowModel;
 use PublishPress\Future\Modules\Workflows\Module;
+use PublishPress\Future\Framework\Logger\LoggerInterface;
+use Throwable;
 
 class WorkflowsList implements InitializableInterface
 {
@@ -25,23 +26,36 @@ class WorkflowsList implements InitializableInterface
      */
     private $nodeTypesModel;
 
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
     public function __construct(
         HookableInterface $hooks,
-        NodeTypesModelInterface $nodeTypesModel
+        NodeTypesModelInterface $nodeTypesModel,
+        LoggerInterface $logger
     ) {
         $this->hooks = $hooks;
         $this->nodeTypesModel = $nodeTypesModel;
+        $this->logger = $logger;
     }
 
     public function initialize()
     {
-        $this->hooks->addAction(CoreHooksAbstract::ACTION_ADMIN_MENU, [
-            $this,
-            "adminMenu",
-        ]);
+        $this->hooks->addAction(
+            CoreHooksAbstract::ACTION_ADMIN_MENU,
+            [$this, "adminMenu"],
+            20
+        );
 
         $this->hooks->addAction(
-            CoreHooksAbstract::ACTION_ADMIN_ENQUEUE_SCRIPT,
+            CoreHooksAbstract::ACTION_ADMIN_INIT,
+            [$this, "fixWorkflowEditorPageTitle"]
+        );
+
+        $this->hooks->addAction(
+            CoreHooksAbstract::ACTION_ADMIN_ENQUEUE_SCRIPTS,
             [$this, "enqueueScriptsList"]
         );
 
@@ -82,34 +96,47 @@ class WorkflowsList implements InitializableInterface
             10,
             2
         );
+
+        $this->hooks->addAction(
+            'admin_footer',
+            [$this, "addScheduledActionsButton"]
+        );
     }
 
     public function adminMenu()
     {
+        try {
+            global $submenu;
+
+            if (!isset($submenu["publishpress-future"])) {
+                return;
+            }
+
+            $this->renameWorkflowsSubmenu();
+
+            add_submenu_page(
+                '',
+                "Action Workflow Editor",
+                "Action Workflow Editor",
+                "manage_options",
+                "future_workflow_editor",
+                [$this, "renderEditorPage"]
+            );
+        } catch (Throwable $th) {
+            $this->logger->error('Error adding workflows menu: ' . $th->getMessage());
+        }
+    }
+
+    private function renameWorkflowsSubmenu()
+    {
         global $submenu;
 
-        if (!isset($submenu["publishpress-future"])) {
-            return;
-        }
-
         $indexAllWorkflows = array_search(
-            "edit.php?post_type=ppfuture_workflow",
+            "edit.php?post_type=" . Module::POST_TYPE_WORKFLOW,
             array_column($submenu["publishpress-future"], 2)
         );
 
-        $submenu["publishpress-future"][$indexAllWorkflows][0] = __(
-            "Action Workflows",
-            "post-expirator"
-        );
-
-        add_submenu_page(
-            "edit.php?post_type=" . Module::POST_TYPE_WORKFLOW,
-            "Action Workflows",
-            "Action Workflows",
-            "manage_options",
-            "future_workflow_editor",
-            [$this, "renderEditorPage"]
-        );
+        $submenu["publishpress-future"][$indexAllWorkflows][0] = __("Action Workflows", "post-expirator");
     }
 
     public function renderEditorPage()
@@ -222,47 +249,52 @@ class WorkflowsList implements InitializableInterface
 
     public function updateWorkflowStatus()
     {
-        if (!isset($_GET['pp_action']) || 'change_workflow_status' !== $_GET['pp_action']) {
-            return;
-        }
+        try {
+            if (!isset($_GET['pp_action']) || 'change_workflow_status' !== $_GET['pp_action']) {
+                return;
+            }
 
-        if (!isset($_GET['workflow_id'])) {
-            return;
-        }
+            if (!isset($_GET['workflow_id'])) {
+                return;
+            }
 
-        if (!isset($_GET['status'])) {
-            return;
-        }
+            if (!isset($_GET['status'])) {
+                return;
+            }
 
-        if (!isset($_GET['_wpnonce'])) {
-            return;
-        }
+            if (!isset($_GET['_wpnonce'])) {
+                return;
+            }
 
-        if (!wp_verify_nonce(sanitize_key($_GET['_wpnonce']), 'change_workflow_status_' . (int) $_GET['workflow_id'])) {
-            return;
-        }
+            if (!wp_verify_nonce(sanitize_key($_GET['_wpnonce']), 'change_workflow_status_' . (int) $_GET['workflow_id'])) {
+                return;
+            }
 
-        $workflowId = (int) $_GET['workflow_id'];
-        $workflowStatus = sanitize_key($_GET['status']);
+            $workflowId = (int) $_GET['workflow_id'];
+            $workflowStatus = sanitize_key($_GET['status']);
 
-        $workflowModel = new WorkflowModel();
-        $workflowModel->load($workflowId);
+            $workflowModel = new WorkflowModel();
+            $workflowModel->load($workflowId);
 
-        if ('publish' === $workflowStatus) {
-            $workflowModel->publish();
-        } else {
-            $workflowModel->unpublish();
-        }
+            if ('publish' === $workflowStatus) {
+                $workflowModel->publish();
+            } else {
+                $workflowModel->unpublish();
+            }
 
-        wp_redirect(
-            esc_url(
-                add_query_arg(
-                    'post_type',
-                    Module::POST_TYPE_WORKFLOW,
-                    admin_url('edit.php')
+            wp_redirect(
+                esc_url(
+                    add_query_arg(
+                        'post_type',
+                        Module::POST_TYPE_WORKFLOW,
+                        admin_url('edit.php')
+                    )
                 )
-            )
-        );
+            );
+        } catch (Throwable $th) {
+            $this->logger->error('Error updating workflow status: ' . $th->getMessage());
+        }
+
         exit;
     }
 
@@ -367,5 +399,52 @@ class WorkflowsList implements InitializableInterface
         }
 
         return $title;
+    }
+
+    public function fixWorkflowEditorPageTitle()
+    {
+        global $title;
+
+        $title = __("Action Workflow Editor", "post-expirator");
+    }
+
+    public function addScheduledActionsButton()
+    {
+        if (!is_admin()) {
+            return;
+        }
+
+        global $current_screen;
+
+        if (!isset($current_screen)) {
+            return;
+        }
+
+        if (
+            Module::POST_TYPE_WORKFLOW !== $current_screen->post_type
+            && 'toplevel_page_publishpress-future' !== $current_screen->id
+        ) {
+            return;
+        }
+
+        $url = admin_url('admin.php?page=publishpress-future-scheduled-actions');
+
+        $customButton = sprintf(
+            '<a href="%s" class="page-title-action">%s</a>',
+            esc_url($url),
+            esc_html__('Scheduled Actions', 'post-expirator')
+        );
+
+        $titleClass = 'toplevel_page_publishpress-future' === $current_screen->id
+            ? 'pp-settings-title'
+            : 'page-title-action';
+
+        // Insert the button into the DOM via JavaScript
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        echo '<script type="text/javascript">
+            jQuery(document).ready(function($) {
+                $(".wrap .' . $titleClass . ':first").after(\'' . $customButton . '\');
+            });
+        </script>';
     }
 }

@@ -11964,12 +11964,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _wordpress_url__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @wordpress/url */ "@wordpress/url");
 /* harmony import */ var _wordpress_url__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_wordpress_url__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__);
 function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
 function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
 function _unsupportedIterableToArray(r, a) { if (r) { if ("string" == typeof r) return _arrayLikeToArray(r, a); var t = {}.toString.call(r).slice(8, -1); return "Object" === t && r.constructor && (t = r.constructor.name), "Map" === t || "Set" === t ? Array.from(r) : "Arguments" === t || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r, a) : void 0; } }
 function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t.return && (u = t.return(), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
 function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
+
 
 
 var _wp = wp,
@@ -12015,7 +12018,7 @@ var DateOffsetPreview = function DateOffsetPreview(_ref) {
         setHasValidDataCallback(result.isValid);
         setValidationErrorCallback(result.message);
         if (result.isValid) {
-          setOffsetPreview(result.preview);
+          setOffsetPreview(result.calculatedTime);
           setCurrentTime(result.currentTime);
         } else {
           setOffsetPreview('');
@@ -12648,6 +12651,77 @@ function DebugData(_ref) {
 
 /***/ }),
 
+/***/ "./assets/jsx/workflow-editor/components/data-fields/debug-levels.jsx":
+/*!****************************************************************************!*\
+  !*** ./assets/jsx/workflow-editor/components/data-fields/debug-levels.jsx ***!
+  \****************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   DebugLevels: () => (/* binding */ DebugLevels),
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @wordpress/components */ "@wordpress/components");
+/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__);
+
+
+
+function DebugLevels(_ref) {
+  var name = _ref.name,
+    label = _ref.label,
+    defaultValue = _ref.defaultValue,
+    onChange = _ref.onChange,
+    _ref$variables = _ref.variables,
+    variables = _ref$variables === void 0 ? [] : _ref$variables;
+  var levelsOptions = [{
+    name: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)("Debug", "post-expirator"),
+    id: "debug"
+  }, {
+    name: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)("Info", "post-expirator"),
+    id: "info"
+  }, {
+    name: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)("Notice", "post-expirator"),
+    id: "notice"
+  }, {
+    name: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)("Warning", "post-expirator"),
+    id: "warning"
+  }, {
+    name: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)("Error", "post-expirator"),
+    id: "error"
+  }, {
+    name: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)("Critical", "post-expirator"),
+    id: "critical"
+  }, {
+    name: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)("Alert", "post-expirator"),
+    id: "alert"
+  }];
+  var defaultOption = 'debug';
+  var onChangeSetting = function onChangeSetting(_ref2) {
+    var value = _ref2.value;
+    if (onChange) {
+      onChange(name, value);
+    }
+  };
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__.__experimentalVStack, null, /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__.TreeSelect, {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)("Level", "post-expirator"),
+    tree: levelsOptions,
+    selectedId: defaultValue || defaultOption,
+    onChange: function onChange(value) {
+      return onChangeSetting({
+        settingName: "level",
+        value: value
+      });
+    }
+  })));
+}
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (DebugLevels);
+
+/***/ }),
+
 /***/ "./assets/jsx/workflow-editor/components/data-fields/email-recipient.jsx":
 /*!*******************************************************************************!*\
   !*** ./assets/jsx/workflow-editor/components/data-fields/email-recipient.jsx ***!
@@ -12821,6 +12895,7 @@ function List(_ref) {
     defaultValue = _ref.defaultValue,
     onChange = _ref.onChange,
     settingsSchema = _ref.settingsSchema;
+  console.log(settingsSchema);
   var options = settingsSchema[0]['fields'][2]['options'];
   options = options.map(function (option) {
     return {
@@ -17617,6 +17692,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _data_fields_manual_workflow_input__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../data-fields/manual-workflow-input */ "./assets/jsx/workflow-editor/components/data-fields/manual-workflow-input.jsx");
 /* harmony import */ var _data_fields_list__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../data-fields/list */ "./assets/jsx/workflow-editor/components/data-fields/list.jsx");
 /* harmony import */ var _data_fields_conditional__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ../data-fields/conditional */ "./assets/jsx/workflow-editor/components/data-fields/conditional.jsx");
+/* harmony import */ var _data_fields_debug_levels__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ../data-fields/debug-levels */ "./assets/jsx/workflow-editor/components/data-fields/debug-levels.jsx");
+
 
 
 
@@ -17659,6 +17736,8 @@ var MappedField = function MappedField(props) {
       return /*#__PURE__*/React.createElement(_data_fields_list__WEBPACK_IMPORTED_MODULE_12__["default"], props);
     case "conditional":
       return /*#__PURE__*/React.createElement(_data_fields_conditional__WEBPACK_IMPORTED_MODULE_13__["default"], props);
+    case "debugLevels":
+      return /*#__PURE__*/React.createElement(_data_fields_debug_levels__WEBPACK_IMPORTED_MODULE_14__["default"], props);
   }
   return /*#__PURE__*/React.createElement("i", null, (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.sprintf)((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Field type %s is not implemented', 'publihspress-future-pro'), props.type));
 };

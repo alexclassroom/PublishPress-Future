@@ -3,10 +3,12 @@
 namespace Tests\Modules\Workflows\Domain\Engine\NodeRunners\Actions;
 
 use PublishPress\Future\Core\HookableInterface;
+use PublishPress\Future\Framework\Logger\LoggerInterface;
 use PublishPress\Future\Modules\Workflows\Domain\Engine\NodeRunners\Actions\CorePostDeactivateWorkflow;
 use PublishPress\Future\Modules\Workflows\Domain\Engine\VariableResolvers\WorkflowResolver;
 use PublishPress\Future\Modules\Workflows\Interfaces\NodeRunnerProcessorInterface;
 use PublishPress\Future\Modules\Workflows\Interfaces\RuntimeVariablesHandlerInterface;
+use PublishPress\Future\Modules\Workflows\Interfaces\WorkflowEngineInterface;
 use PublishPress\Future\Modules\Workflows\Models\PostModel;
 
 
@@ -66,11 +68,15 @@ class CorePostDeactivateWorkflowTest extends \lucatume\WPBrowser\TestCase\WPTest
         $workflows = $this->createWorkflows();
 
         $runner = new CorePostDeactivateWorkflow(
-            $this->makeEmpty(HookableInterface::class),
-            $this->makeEmpty(NodeRunnerProcessorInterface::class),
+            $this->makeEmpty(NodeRunnerProcessorInterface::class, [
+                'executeSafelyWithErrorHandling' => function ($step, $callback, ...$args) {
+                    call_user_func($callback, $step, ...$args);
+                }
+            ]),
             $this->makeEmpty(RuntimeVariablesHandlerInterface::class, [
                 'getVariable' => new WorkflowResolver(['id' => $workflows[0]])
-            ])
+            ]),
+            $this->makeEmpty(LoggerInterface::class)
         );
 
         $model = new PostModel();
@@ -80,7 +86,7 @@ class CorePostDeactivateWorkflowTest extends \lucatume\WPBrowser\TestCase\WPTest
 
         $this->assertEquals([$workflows[0]], $model->getManuallyEnabledWorkflows());
 
-        $runner->actionCallback(
+        $runner->setupCallback(
             $postId,
             [
                 'post' => [

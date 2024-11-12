@@ -15,6 +15,8 @@ use PublishPress\Future\Modules\Expirator\Interfaces\SchedulerInterface;
 use PublishPress\Future\Modules\Expirator\Interfaces\CronInterface;
 use PublishPress\Future\Framework\WordPress\Facade\RequestFacade;
 use PublishPress\Future\Framework\Database\Interfaces\DBTableSchemaInterface;
+use PublishPress\Future\Framework\Logger\LoggerInterface;
+use PublishPress\Future\Framework\System\DateTimeHandlerInterface;
 use PublishPress\Future\Modules\Settings\SettingsFacade;
 
 defined('ABSPATH') or die('Direct access not allowed.');
@@ -91,6 +93,15 @@ class Module implements ModuleInterface
      */
     private $settingsFacade;
 
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
+     * @var DateTimeHandlerInterface
+     */
+    private $dateTimeHandler;
 
     public function __construct(
         \PublishPress\Future\Core\HookableInterface $hooks,
@@ -105,7 +116,9 @@ class Module implements ModuleInterface
         \Closure $scheduledActionsTableFactory,
         NoticeFacade $noticesFacade,
         DBTableSchemaInterface $actionArgsSchema,
-        SettingsFacade $settingsFacade
+        SettingsFacade $settingsFacade,
+        LoggerInterface $logger,
+        DateTimeHandlerInterface $dateTimeHandler
     ) {
         $this->hooks = $hooks;
         $this->site = $site;
@@ -120,6 +133,8 @@ class Module implements ModuleInterface
         $this->noticesFacade = $noticesFacade;
         $this->actionArgsSchema = $actionArgsSchema;
         $this->settingsFacade = $settingsFacade;
+        $this->logger = $logger;
+        $this->dateTimeHandler = $dateTimeHandler;
 
         $this->controllers['expiration'] = $this->factoryExpirationController();
         $this->controllers['quick_edit'] = $this->factoryQuickEditController();
@@ -162,7 +177,8 @@ class Module implements ModuleInterface
             $this->expirablePostModelFactory,
             $this->sanitization,
             $this->currentUserModelFactory,
-            $this->request
+            $this->request,
+            $this->logger
         );
     }
 
@@ -170,7 +186,8 @@ class Module implements ModuleInterface
     {
         return new Controllers\QuickEditController(
             $this->hooks,
-            $this->currentUserModelFactory
+            $this->currentUserModelFactory,
+            $this->logger
         );
     }
 
@@ -180,7 +197,8 @@ class Module implements ModuleInterface
             $this->hooks,
             $this->actionArgsModelFactory,
             $this->scheduledActionsTableFactory,
-            $this->settingsFacade
+            $this->settingsFacade,
+            $this->logger
         );
     }
 
@@ -198,7 +216,8 @@ class Module implements ModuleInterface
     {
         return new Controllers\ClassicEditorController(
             $this->hooks,
-            $this->currentUserModelFactory
+            $this->currentUserModelFactory,
+            $this->logger
         );
     }
 
@@ -211,7 +230,8 @@ class Module implements ModuleInterface
     {
         return new Controllers\PostListController(
             $this->hooks,
-            $this->actionArgsSchema
+            $this->actionArgsSchema,
+            $this->logger
         );
     }
 
@@ -230,7 +250,9 @@ class Module implements ModuleInterface
         return new Controllers\RestAPIController(
             $this->hooks,
             $this->expirablePostModelFactory,
-            $this->currentUserModelFactory
+            $this->currentUserModelFactory,
+            $this->logger,
+            $this->dateTimeHandler
         );
     }
 

@@ -13,6 +13,7 @@ use PublishPress\Future\Modules\Workflows\Interfaces\InputValidatorsInterface;
 use PublishPress\Future\Modules\Workflows\Interfaces\NodeRunnerProcessorInterface;
 use PublishPress\Future\Modules\Workflows\Interfaces\NodeTriggerRunnerInterface;
 use PublishPress\Future\Modules\Workflows\Interfaces\RuntimeVariablesHandlerInterface;
+use PublishPress\Future\Framework\Logger\LoggerInterface;
 
 class CoreOnSavePost implements NodeTriggerRunnerInterface
 {
@@ -48,17 +49,23 @@ class CoreOnSavePost implements NodeTriggerRunnerInterface
      */
     private $variablesHandler;
 
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
 
     public function __construct(
         HookableInterface $hooks,
         NodeRunnerProcessorInterface $nodeRunnerProcessor,
         InputValidatorsInterface $postQueryValidator,
-        RuntimeVariablesHandlerInterface $variablesHandler
+        RuntimeVariablesHandlerInterface $variablesHandler,
+        LoggerInterface $logger
     ) {
         $this->hooks = $hooks;
         $this->nodeRunnerProcessor = $nodeRunnerProcessor;
         $this->postQueryValidator = $postQueryValidator;
         $this->variablesHandler = $variablesHandler;
+        $this->logger = $logger;
     }
 
     public static function getNodeTypeName(): string
@@ -76,6 +83,8 @@ class CoreOnSavePost implements NodeTriggerRunnerInterface
 
     public function triggerCallback($postId, $post, $update)
     {
+        $stepSlug = $this->nodeRunnerProcessor->getSlugFromStep($this->step);
+
         if (
             $this->hooks->applyFilters(
                 HooksAbstract::FILTER_IGNORE_SAVE_POST_EVENT,
@@ -84,10 +93,24 @@ class CoreOnSavePost implements NodeTriggerRunnerInterface
                 $this->step
             )
         ) {
+            $this->logger->debug(
+                $this->nodeRunnerProcessor->prepareLogMessage(
+                    'Ignoring save post event for step %s',
+                    $stepSlug
+                )
+            );
+
             return;
         }
 
         if ($this->isInfinityLoopDetected($this->workflowId, $this->step)) {
+            $this->logger->debug(
+                $this->nodeRunnerProcessor->prepareLogMessage(
+                    'Infinite loop detected for step %s, skipping',
+                    $stepSlug
+                )
+            );
+
             return;
         }
 
@@ -100,17 +123,31 @@ class CoreOnSavePost implements NodeTriggerRunnerInterface
             return false;
         }
 
-        $this->hooks->doAction(HooksAbstract::ACTION_WORKFLOW_ENGINE_RUNNING_STEP, $this->step);
+        $this->nodeRunnerProcessor->executeSafelyWithErrorHandling(
+            $this->step,
+            function ($step, $stepSlug, $postId, $post, $update) {
+                $this->variablesHandler->setVariable($stepSlug, [
+                    'postId' => new IntegerResolver($postId),
+                    'post' => new PostResolver($post, $this->hooks),
+                    'update' => new BooleanResolver($update),
+                ]);
 
-        $nodeSlug = $this->nodeRunnerProcessor->getSlugFromStep($this->step);
+                $this->nodeRunnerProcessor->triggerCallbackIsRunning();
 
-        $this->variablesHandler->setVariable($nodeSlug, [
-            'postId' => new IntegerResolver($postId),
-            'post' => new PostResolver($post, $this->hooks),
-            'update' => new BooleanResolver($update),
-        ]);
+                $this->logger->debug(
+                    $this->nodeRunnerProcessor->prepareLogMessage(
+                        'Trigger is running | Slug: %s | Post ID: %d',
+                        $stepSlug,
+                        $postId
+                    )
+                );
 
-        $this->nodeRunnerProcessor->triggerCallbackIsRunning();
-        $this->nodeRunnerProcessor->runNextSteps($this->step);
+                $this->nodeRunnerProcessor->runNextSteps($step);
+            },
+            $stepSlug,
+            $postId,
+            $post,
+            $update
+        );
     }
 }

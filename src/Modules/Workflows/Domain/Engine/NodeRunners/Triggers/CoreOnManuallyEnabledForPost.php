@@ -12,6 +12,7 @@ use PublishPress\Future\Modules\Workflows\Interfaces\InputValidatorsInterface;
 use PublishPress\Future\Modules\Workflows\Interfaces\NodeRunnerProcessorInterface;
 use PublishPress\Future\Modules\Workflows\Interfaces\NodeTriggerRunnerInterface;
 use PublishPress\Future\Modules\Workflows\Interfaces\RuntimeVariablesHandlerInterface;
+use PublishPress\Future\Framework\Logger\LoggerInterface;
 
 class CoreOnManuallyEnabledForPost implements NodeTriggerRunnerInterface
 {
@@ -49,16 +50,23 @@ class CoreOnManuallyEnabledForPost implements NodeTriggerRunnerInterface
      */
     private $variablesHandler;
 
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
     public function __construct(
         HookableInterface $hooks,
         NodeRunnerProcessorInterface $nodeRunnerProcessor,
         InputValidatorsInterface $postQueryValidator,
-        RuntimeVariablesHandlerInterface $variablesHandler
+        RuntimeVariablesHandlerInterface $variablesHandler,
+        LoggerInterface $logger
     ) {
         $this->hooks = $hooks;
         $this->nodeRunnerProcessor = $nodeRunnerProcessor;
         $this->postQueryValidator = $postQueryValidator;
         $this->variablesHandler = $variablesHandler;
+        $this->logger = $logger;
     }
 
     public static function getNodeTypeName(): string
@@ -76,7 +84,16 @@ class CoreOnManuallyEnabledForPost implements NodeTriggerRunnerInterface
 
     public function triggerCallback($postId, $workflowId)
     {
+        $nodeSlug = $this->nodeRunnerProcessor->getSlugFromStep($this->step);
+
         if ($this->isInfinityLoopDetected($this->workflowId, $this->step)) {
+            $this->logger->debug(
+                $this->nodeRunnerProcessor->prepareLogMessage(
+                    'Infinite loop detected for step %s, skipping',
+                    $nodeSlug
+                )
+            );
+
             return;
         }
 
@@ -84,27 +101,42 @@ class CoreOnManuallyEnabledForPost implements NodeTriggerRunnerInterface
             return;
         }
 
-        $this->hooks->doAction(HooksAbstract::ACTION_WORKFLOW_ENGINE_RUNNING_STEP, $this->step);
+        $this->nodeRunnerProcessor->executeSafelyWithErrorHandling(
+            $this->step,
+            function ($step, $postId) {
+                $nodeSlug = $this->nodeRunnerProcessor->getSlugFromStep($step);
 
-        $post = get_post($postId);
+                $post = get_post($postId);
 
-        $postQueryArgs = [
-            'post' => $post,
-            'node' => $this->step['node'],
-        ];
+                $postQueryArgs = [
+                    'post' => $post,
+                    'node' => $this->step['node'],
+                ];
 
-        if (! $this->postQueryValidator->validate($postQueryArgs)) {
-            return false;
-        }
+                if (! $this->postQueryValidator->validate($postQueryArgs)) {
+                    return false;
+                }
 
-        $nodeSlug = $this->nodeRunnerProcessor->getSlugFromStep($this->step);
+                $this->variablesHandler->setVariable(
+                    $nodeSlug,
+                    [
+                        'postId' => new IntegerResolver($postId),
+                        'post' => new PostResolver($post, $this->hooks),
+                    ]
+                );
 
-        $this->variablesHandler->setVariable($nodeSlug, [
-            'postId' => new IntegerResolver($postId),
-            'post' => new PostResolver($post, $this->hooks),
-        ]);
+                $this->logger->debug(
+                    $this->nodeRunnerProcessor->prepareLogMessage(
+                        'Trigger is running | Slug: %s | Post ID: %d',
+                        $nodeSlug,
+                        $postId
+                    )
+                );
 
-        $this->nodeRunnerProcessor->triggerCallbackIsRunning();
-        $this->nodeRunnerProcessor->runNextSteps($this->step);
+                $this->nodeRunnerProcessor->triggerCallbackIsRunning();
+                $this->nodeRunnerProcessor->runNextSteps($this->step);
+            },
+            $postId
+        );
     }
 }

@@ -2,12 +2,11 @@
 
 namespace PublishPress\Future\Modules\Workflows\Domain\Engine\NodeRunners\Actions;
 
-use PublishPress\Future\Core\HookableInterface;
+use PublishPress\Future\Framework\Logger\LoggerInterface;
 use PublishPress\Future\Modules\Workflows\Domain\NodeTypes\Actions\CorePostChangeStatus as NodeType;
-use PublishPress\Future\Modules\Workflows\HooksAbstract;
 use PublishPress\Future\Modules\Workflows\Interfaces\NodeRunnerInterface;
 use PublishPress\Future\Modules\Workflows\Interfaces\NodeRunnerProcessorInterface;
-use PublishPress\Future\Modules\Workflows\Interfaces\RuntimeVariablesHandlerInterface;
+
 class CorePostChangeStatus implements NodeRunnerInterface
 {
     /**
@@ -16,23 +15,16 @@ class CorePostChangeStatus implements NodeRunnerInterface
     private $nodeRunnerProcessor;
 
     /**
-     * @var HookableInterface
+     * @var LoggerInterface
      */
-    private $hooks;
-
-    /**
-     * @var RuntimeVariablesHandlerInterface
-     */
-    private $variablesHandler;
+    private $logger;
 
     public function __construct(
         NodeRunnerProcessorInterface $nodeRunnerProcessor,
-        HookableInterface $hooks,
-        RuntimeVariablesHandlerInterface $variablesHandler
+        LoggerInterface $logger
     ) {
         $this->nodeRunnerProcessor = $nodeRunnerProcessor;
-        $this->hooks = $hooks;
-        $this->variablesHandler = $variablesHandler;
+        $this->logger = $logger;
     }
 
     public static function getNodeTypeName(): string
@@ -42,8 +34,21 @@ class CorePostChangeStatus implements NodeRunnerInterface
 
     public function setup(array $step): void
     {
-        $this->hooks->doAction(HooksAbstract::ACTION_WORKFLOW_ENGINE_RUNNING_STEP, $step);
+        $this->nodeRunnerProcessor->setup($step, [$this, 'setupCallback']);
+    }
 
-        $this->nodeRunnerProcessor->setup($step, '__return_true');
+    public function setupCallback(int $postId, array $nodeSettings, array $step)
+    {
+        $this->nodeRunnerProcessor->executeSafelyWithErrorHandling(
+            $step,
+            function ($step) {
+                $this->logger->debug(
+                    $this->nodeRunnerProcessor->prepareLogMessage(
+                        'Step %1$s is a Pro feature, skipping',
+                        $this->nodeRunnerProcessor->getSlugFromStep($step)
+                    )
+                );
+            }
+        );
     }
 }

@@ -3,6 +3,43 @@
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [4.1.0] - 11 Nov, 2024
+
+### Added
+
+- Add more detailed debug logs to the workflow engine (Issue #724).
+- Add button to copy the debug logs to the clipboard (Issue #724).
+- Add "Published" status to the legacy expiration statuses (Issue #1023).
+- Add new workflow step to write a log message (Issue #690).
+
+### Fixed
+
+- Fixed the timezone in the default date applied from default action time (Issue #1005).
+- Fixed the timezone in the date preview (Issue #1004).
+
+### Changed
+
+- Improved the debug log viewer adding text to a textarea (Issue #724).
+- Improve the debug log viewer adding a button to download the entire log or copy it to the clipboard (Issue #724).
+- The debug log viewer now automatically scrolls to the bottom when the page loads (Issue #724).
+- Deprecate the class `PublishPress\Future\Modules\Debug\Debug` and use the logger facade instead.
+- Better handling of the exceptions and errors thrown by the plugin.
+- Removed the admin submenu item "Scheduled Actions" and added a button in the workflows list screen (Issue #1022).
+- Removed the "post-expirator-debug.php" file which is no longer used.
+
+### Developers
+
+- Add new class `PublishPress\Future\Framework\System\DateTimeHandler` to handle date and time operations.
+- Change the REST API `/settings/validate-expire-offset` endpoint return value renaming `preview` to `calculatedTime`.
+- Change the REST API `/settings/validate-expire-offset` endpoint to log an error message when the offset is invalid.
+- Add `DateTimeHandlerInterface` as dependency to the class `PublishPress\Future\Modules\Expirator\Models\PostTypeDefaultDataModel`.
+- Add `LoggerInterface` as dependency to the class `PublishPress\Future\Modules\Expirator\Module`.
+- Add `DateTimeHandlerInterface` as dependency to the class `PublishPress\Future\Modules\Expirator\Module`.
+- Deprecated the constant `PublishPress\Future\Core::ACTION_ADMIN_ENQUEUE_SCRIPT` in favor of `PublishPress\Future\Core::ACTION_ADMIN_ENQUEUE_SCRIPTS`.
+- Remove the action `publishpressfuture_workflow_engine_running_step` from the workflow engine.
+- Add new methods to the class `PublishPress\Future\Framework\Logger\Logger` to retrieve the log count, the log size, and to fetch the latest logs.
+- Node runner processors now accept a branch argument to get the next steps and run the next steps.
+
 ## [4.0.4] - 24 Oct, 2024
 
 ### Fixed
@@ -34,27 +71,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Fix the database schema check for version 4.0.0 on fresh installations, (Issue #928).
 
-## [4.0.0] - 21 Oct, 2024
+## [4.0.0] - 01 Oct, 2024
 
 ### Added
 
 - Add the Workflows feature, with the workflow editor and the workflow engine.
-
-### Changes
-
-- The list of scheduled actions now displays the repetition count/date limits (Issue #928).
-- Update language files.
-- Updated the UI in the advanced settings page.
-- Move some advanced settings to the "Display" tab (Issue #952)
-- Add title to the future action panel for UI consistency (Issue #965)
-- Renamed the PublishPress Future metabox to Future Actions for UI consistency (Issue #965)
 
 ### Fixed
 
 - Update post model to update post date when setting post status to publish.
 - Prevent error when the current_post->ID is empty for unknown reasons, usually related to 3rd party plugins.
 
-### Developers
+### Changes
+
+- The list of scheduled actions now displays the repetition count/date limits (#928).
+- Update language files.
+
+### Code changes
 
 - Interface `PublishPress\Future\Core\HookableInterface`: Add new method `removeFilter` to remove a hooked filter.
 - Interface `PublishPress\Future\Core\HookableInterface`: Add new method `removeAction` to remove a hooked action.
@@ -64,8 +97,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add new filter 'publishpressfuture_migrations' to filter the list of migrations that will be executed.
 - Call the action 'publishpressfuture_fix_db_schema' when a DB fix is executed from the settings page.
 - Call the action 'publishpressfuture_upgrade_plugin' when the plugin is upgraded.
-- Change the data type from void to int for the method 'PublishPress\Future\Modules\Expirator\Interfaces\CronInterfac::scheduleRecurringAction'.
-- Change the data type from void to int for the method 'PublishPress\Future\Modules\Expirator\Interfaces\CronInterfac::scheduleAsyncAction'.
+- Change the data type from void to int for the method 'PublishPress\Future\Modules\Expirator\Interfaces]CronInterfac::scheduleRecurringAction'.
+- Change the data type from void to int for the method 'PublishPress\Future\Modules\Expirator\Interfaces]CronInterfac::scheduleAsyncAction'.
 - Add new filter 'publishpressfuture_schema_is_healthy' to check if the DB schema is healthy.
 - The method 'PublishPress\Future\Modules\Workflows\Models\WorkflowModel::getStepFromRoutineTreeRecursively' now always returns an array.
 - Add new filter 'action_scheduler_list_table_column_recurrence' to filter the recurrence column in the scheduled actions list.

@@ -2,20 +2,13 @@
 
 namespace PublishPress\Future\Modules\Workflows\Domain\Engine\NodeRunners\Actions;
 
-use Exception;
-use PublishPress\Future\Core\HookableInterface;
 use PublishPress\Future\Modules\Workflows\Domain\NodeTypes\Actions\CorePostDelete as NodeTypeCorePostDelete;
-use PublishPress\Future\Modules\Workflows\HooksAbstract;
 use PublishPress\Future\Modules\Workflows\Interfaces\NodeRunnerInterface;
 use PublishPress\Future\Modules\Workflows\Interfaces\NodeRunnerProcessorInterface;
-use PublishPress\Future\Modules\Workflows\Interfaces\RuntimeVariablesHandlerInterface;
+use PublishPress\Future\Framework\Logger\LoggerInterface;
+
 class CorePostDelete implements NodeRunnerInterface
 {
-    /**
-     * @var HookableInterface
-     */
-    private $hooks;
-
     /**
      * @var NodeRunnerProcessorInterface
      */
@@ -27,20 +20,18 @@ class CorePostDelete implements NodeRunnerInterface
     private $expirablePostModelFactory;
 
     /**
-     * @var RuntimeVariablesHandlerInterface
+     * @var LoggerInterface
      */
-    private $variablesHandler;
+    private $logger;
 
     public function __construct(
-        HookableInterface $hooks,
         NodeRunnerProcessorInterface $nodeRunnerProcessor,
         \Closure $expirablePostModelFactory,
-        RuntimeVariablesHandlerInterface $variablesHandler
+        LoggerInterface $logger
     ) {
-        $this->hooks = $hooks;
         $this->nodeRunnerProcessor = $nodeRunnerProcessor;
         $this->expirablePostModelFactory = $expirablePostModelFactory;
-        $this->variablesHandler = $variablesHandler;
+        $this->logger = $logger;
     }
 
     public static function getNodeTypeName(): string
@@ -50,14 +41,29 @@ class CorePostDelete implements NodeRunnerInterface
 
     public function setup(array $step): void
     {
-        $this->nodeRunnerProcessor->setup($step, [$this, 'actionCallback']);
+        $this->nodeRunnerProcessor->setup($step, [$this, 'setupCallback']);
     }
 
-    public function actionCallback(int $postId, array $nodeSettings, array $step)
+    public function setupCallback(int $postId, array $nodeSettings, array $step)
     {
-        $this->hooks->doAction(HooksAbstract::ACTION_WORKFLOW_ENGINE_RUNNING_STEP, $step);
+        $this->nodeRunnerProcessor->executeSafelyWithErrorHandling(
+            $step,
+            function ($step, $postId) {
+                $postModel = call_user_func($this->expirablePostModelFactory, $postId);
+                $postModel->delete(true);
 
-        $postModel = call_user_func($this->expirablePostModelFactory, $postId);
-        $postModel->delete(true);
+                $nodeSlug = $this->nodeRunnerProcessor->getSlugFromStep($step);
+
+                $this->logger->debug(
+                    $this->nodeRunnerProcessor->prepareLogMessage(
+                        'Post %1$s deleted on step %2$s',
+                        $postId,
+                        $nodeSlug
+                    )
+                );
+            },
+            $postId
+        );
     }
 }
+
