@@ -3,6 +3,52 @@
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## UNRELEASED
+
+### Added
+
+- Add method `disableExpiration` to the class `PublishPress\Future\Modules\Expirator\Models\ExpirablePostModel`.
+
+### Fixed
+
+- Do not remove expiration post meta when clearing the scheduled action (Issue #1053).
+
+## [4.1.3] - 22 Nov, 2024
+
+### Added
+
+- Add check for the constant `PUBLISHPRESS_FUTURE_FORCE_DEBUG` to force debug mode.
+
+### Fixed
+
+- Fix error on fresh install about missing table (Issue #1051).
+
+## [4.1.2] - 21 Nov, 2024
+
+### Fixed
+
+- Fix translations (Issues #1003, #1006, #1007, #1026).
+- Updated pt-BR translations (Issue #10018).
+- Updated es, it, fr translations (Issue #1047).
+- Fix zombie auto-drafts appearing in the future when auto-enable is activated (Issue #1024).
+- Fix call to undefined function `error_log` (Issue #1036).
+- Fix the page title in the workflow editor (Issue #1027).
+- Fix the page title on admin pages of 3rd party plugins (Issue #1037).
+- Updated the pt-BR translations.
+- Fix the size of Pro badge on step inserter in the workflow editor.
+
+## [4.1.1] - 12 Nov, 2024
+
+### Fixed
+
+- Fix the layout of inserter in the workflow editor for WP 6.7 (Issue #1025).
+- Fix the layout of the top toolbar in the workflow editor for WP 6.7 (Issue #1028).
+
+### Changed
+
+- Minimum required version of WordPress is now 6.7.
+- Minimum required version of PHP is now 7.4.
+
 ## [4.1.0] - 11 Nov, 2024
 
 ### Added

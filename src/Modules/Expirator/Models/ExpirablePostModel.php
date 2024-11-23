@@ -827,6 +827,11 @@ class ExpirablePostModel extends PostModel
         return $timestamp;
     }
 
+    public function disableExpiration()
+    {
+        $this->updateMeta(PostMetaAbstract::EXPIRATION_STATUS, '0');
+    }
+
     public function hasActionScheduledInPostMeta()
     {
         $timestampInPostMeta = $this->getMeta(PostMetaAbstract::EXPIRATION_TIMESTAMP, true);
@@ -957,5 +962,33 @@ class ExpirablePostModel extends PostModel
     private function registerNoticeMessage($postId, $message)
     {
         set_transient('post-expirator-notice-' . $postId, $message, MINUTE_IN_SECONDS);
+    }
+
+    public function shouldAutoEnable(): bool
+    {
+        return $this->defaultDataModel->isAutoEnabled();
+    }
+
+    public function setupFutureActionWithDefaultData()
+    {
+        $defaultExpire = $this->defaultDataModel->getActionDateParts($this->postId);
+
+        if (empty($defaultExpire['ts'])) {
+            return;
+        }
+
+        $opts = [
+            'expireType' => $this->defaultDataModel->getAction(),
+            'newStatus' => $this->defaultDataModel->getNewStatus(),
+            'category' => $this->defaultDataModel->getTerms(),
+            'categoryTaxonomy' => (string)$this->defaultDataModel->getTaxonomy(),
+        ];
+
+        $this->hooks->doAction(
+            HooksAbstract::ACTION_SCHEDULE_POST_EXPIRATION,
+            $this->postId,
+            $defaultExpire['ts'],
+            $opts
+        );
     }
 }

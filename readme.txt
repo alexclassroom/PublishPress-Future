@@ -1,13 +1,13 @@
-=== Schedule Post Changes: Unpublish, Delete, Change Status, Trash, Change Categories and Tags with PublishPress Future ===
+=== Schedule Post Changes With PublishPress Future: Unpublish, Delete, Change Status, Trash, Change Categories ===
 Contributors: publishpress, kevinB, stevejburge, andergmartins
 Author: publishpress
 Author URI: https://publishpress.com
 Tags: unpublish posts, update posts, schedule changes, automatic changes, workflows
-Requires at least: 6.1
-Requires PHP: 7.2.5
-Tested up to: 6.6
+Requires at least: 6.7
+Requires PHP: 7.4
+Tested up to: 6.7
 License: GPLv2 or later
-Stable tag: 4.1.0
+Stable tag: 4.1.3
 
 PublishPress Future can make scheduled changes to your content. You can unpublish posts, move posts to a new status, update the categories, and more.
 
@@ -173,6 +173,42 @@ Yes, the PublishPress Future plugin allows you to schedule automatic changes to 
 
 The full changelog can be found on [GitHub](https://github.com/publishpress/PublishPress-Future/blob/main/CHANGELOG.md).
 
+## [4.1.3] - 22 Nov, 2024
+
+### Added
+
+- Add check for the constant `PUBLISHPRESS_FUTURE_FORCE_DEBUG` to force debug mode.
+
+### Fixed
+
+- Fix error on fresh install about missing table (Issue #1051).
+
+## [4.1.2] - 21 Nov, 2024
+
+### Fixed
+
+- Fix translations (Issues #1003, #1006, #1007, #1026).
+- Updated pt-BR translations (Issue #10018).
+- Updated es, it, fr translations (Issue #1047).
+- Fix zombie auto-drafts appearing in the future when auto-enable is activated (Issue #1024).
+- Fix call to undefined function `error_log` (Issue #1036).
+- Fix the page title in the workflow editor (Issue #1027).
+- Fix the page title on admin pages of 3rd party plugins (Issue #1037).
+- Updated the pt-BR translations.
+- Fix the size of Pro badge on step inserter in the workflow editor.
+
+## [4.1.1] - 12 Nov, 2024
+
+### Fixed
+
+- Fix the layout of inserter in the workflow editor for WP 6.7 (Issue #1025).
+- Fix the layout of the top toolbar in the workflow editor for WP 6.7 (Issue #1028).
+
+### Changed
+
+- Minimum required version of WordPress is now 6.7.
+- Minimum required version of PHP is now 7.4.
+
 ## [4.1.0] - 11 Nov, 2024
 
 ### Added
@@ -297,56 +333,3 @@ The full changelog can be found on [GitHub](https://github.com/publishpress/Publ
 - Added computed date preview to the general settings page (PR #897).
 - Added option to hide the calendar by default in the future action panel (PR #899).
 - Added new filter `publishpressfuture_posts_future_action_column_output` to the Future Action column.
-
-## [3.4.3] - 06 Aug, 2024
-
-### Changed
-
-- Remove icon from the Future metabox in the block editor, #821
-
-### Fixed
-
-- Update translation files
-- Only load the quick-edit script if in the post list screen
-- Fix quick edit action box to use the filter to hide action box when deactivated for the post type, #884
-- Fixed the database schema check to also check the debug log table, #887
-- Fixed the database schema check to check the table indexes, #887
-
-## [3.4.2] - 15 Jul, 2024
-
-### Added
-
-- Add the current date and time to date preview in the date/time offset setting field, #840
-
-### Fixed
-
-- Optimized the date/time offset validation requests in the Post Types settings, #840
-- Fix error message in the date/time offset setting field, #841
-- Fix user capabilities check in the block editor, #727
-- Update ES, FR, and IT translations, #859
-
-### Changed
-
-- Change the text in the promo screen for the Actions Workflow feature, #867
-
-## [3.4.1] - 02 Jul, 2024
-
-### Added
-
-- Implement add promo screen for Actions Workflows, #777
-- Implement the post_id attribute to the futureaction shortcode, #814
-
-### Fixed
-
-- Fix some translations in ES, FR, and IT languages, #798
-- Fix “no future actions” message in the scheduled actions list, #788
-- Try to avoid fatal error for wrong argument counting
-- Minor issues pointed by PHPCS
-- Escape an exception message
-
-### Changed
-
-- Update language files
-- Improve the exception message when the date/time offset is invalid
-- Update composer files for dev dependencies
-
