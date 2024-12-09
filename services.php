@@ -53,6 +53,7 @@ use PublishPress\Future\Modules\Expirator\Models\ExpirablePostModel;
 use PublishPress\Future\Modules\Expirator\Models\ExpirationActionsModel;
 use PublishPress\Future\Modules\Expirator\Models\PostTypeDefaultDataModelFactory;
 use PublishPress\Future\Modules\Expirator\Module as ModuleExpirator;
+use PublishPress\Future\Modules\Backup\Module as ModuleBackup;
 use PublishPress\Future\Modules\Expirator\Tables\ScheduledActionsTable;
 use PublishPress\Future\Modules\InstanceProtection\Module as ModuleInstanceProtection;
 use PublishPress\Future\Modules\Settings\Models\SettingsPostTypesModel;
@@ -84,11 +85,13 @@ use PublishPress\Future\Modules\Workflows\Domain\Engine\NodeRunners\Triggers\Cor
 use PublishPress\Future\Modules\Workflows\Domain\Engine\NodeRunners\Triggers\CoreOnCronSchedule;
 use PublishPress\Future\Modules\Workflows\Domain\Engine\NodeRunners\Triggers\CoreOnInit;
 use PublishPress\Future\Modules\Workflows\Domain\Engine\NodeRunners\Triggers\CoreOnManuallyEnabledForPost;
+use PublishPress\Future\Modules\Workflows\Domain\Engine\NodeRunners\Triggers\CoreOnPostStatusChanged;
 use PublishPress\Future\Modules\Workflows\Domain\Engine\NodeRunners\Triggers\CoreOnPostUpdated;
 use PublishPress\Future\Modules\Workflows\Domain\Engine\NodeRunners\Triggers\CoreOnSavePost;
 use PublishPress\Future\Modules\Workflows\Domain\Engine\NodeRunners\Triggers\FutureLegacyAction;
 use PublishPress\Future\Modules\Workflows\Domain\Engine\RuntimeVariablesHandler;
 use PublishPress\Future\Modules\Workflows\Domain\Engine\WorkflowEngine;
+use PublishPress\Future\Modules\Workflows\Domain\NodeTypes\Triggers\CoreOnPostPublished;
 use PublishPress\Future\Modules\Workflows\HooksAbstract as WorkflowsHooksAbstract;
 use PublishPress\Future\Modules\Workflows\Interfaces\AsyncNodeRunnerProcessorInterface;
 use PublishPress\Future\Modules\Workflows\Interfaces\NodeRunnerProcessorInterface;
@@ -145,6 +148,7 @@ return [
             ServicesAbstract::MODULE_SETTINGS,
             ServicesAbstract::MODULE_WOOCOMMERCE,
             ServicesAbstract::MODULE_WORKFLOWS,
+            ServicesAbstract::MODULE_BACKUP,
         ];
 
         $modules = [];
@@ -232,7 +236,9 @@ return [
      * @return DateTimeFacade
      */
     ServicesAbstract::DATETIME => static function (ContainerInterface $container) {
-        return new DateTimeFacade();
+        return new DateTimeFacade(
+            $container->get(ServicesAbstract::OPTIONS)
+        );
     },
 
     /**
@@ -391,7 +397,20 @@ return [
             $container->get(ServicesAbstract::LOGGER),
             $container->get(ServicesAbstract::DATE_TIME_HANDLER),
             $container->get(ServicesAbstract::POST_TYPE_DEFAULT_DATA_MODEL_FACTORY),
-            $container->get(ServicesAbstract::TAXONOMIES_MODEL_FACTORY)
+            $container->get(ServicesAbstract::TAXONOMIES_MODEL_FACTORY),
+            $container->get(ServicesAbstract::DATETIME)
+        );
+    },
+
+    /**
+     * @return ModuleInterface
+     */
+    ServicesAbstract::MODULE_BACKUP => static function (ContainerInterface $container) {
+        return new ModuleBackup(
+            $container->get(ServicesAbstract::HOOKS),
+            $container->get(ServicesAbstract::PLUGIN_VERSION),
+            $container->get(ServicesAbstract::SETTINGS),
+            $container->get(ServicesAbstract::LOGGER)
         );
     },
 
@@ -702,7 +721,9 @@ return [
     },
 
     ServicesAbstract::WORKFLOWS_REST_API_MANAGER => static function (ContainerInterface $container) {
-        return new RestApiManager();
+        return new RestApiManager(
+            $container->get(ServicesAbstract::SETTINGS)
+        );
     },
 
     ServicesAbstract::NODE_TYPES_MODEL => static function (ContainerInterface $container) {
@@ -818,6 +839,24 @@ return [
                         $container->get(ServicesAbstract::HOOKS),
                         $container->get(ServicesAbstract::GENERAL_STEP_NODE_RUNNER_PROCESSOR),
                         $container->get(ServicesAbstract::INPUT_VALIDATOR_POST_QUERY),
+                        $container->get(ServicesAbstract::WORKFLOW_VARIABLES_HANDLER),
+                        $container->get(ServicesAbstract::LOGGER)
+                    );
+                    break;
+
+                case CoreOnPostPublished::getNodeTypeName():
+                    $nodeRunner = new CoreOnPostPublished(
+                        $container->get(ServicesAbstract::HOOKS),
+                        $container->get(ServicesAbstract::GENERAL_STEP_NODE_RUNNER_PROCESSOR),
+                        $container->get(ServicesAbstract::WORKFLOW_VARIABLES_HANDLER),
+                        $container->get(ServicesAbstract::LOGGER)
+                    );
+                    break;
+
+                case CoreOnPostStatusChanged::getNodeTypeName():
+                    $nodeRunner = new CoreOnPostStatusChanged(
+                        $container->get(ServicesAbstract::HOOKS),
+                        $container->get(ServicesAbstract::GENERAL_STEP_NODE_RUNNER_PROCESSOR),
                         $container->get(ServicesAbstract::WORKFLOW_VARIABLES_HANDLER),
                         $container->get(ServicesAbstract::LOGGER)
                     );
