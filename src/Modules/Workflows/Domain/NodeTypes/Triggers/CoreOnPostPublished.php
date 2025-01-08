@@ -63,7 +63,7 @@ class CoreOnPostPublished implements NodeTypeInterface
             [
                 "label" => __("Post Query", "post-expirator"),
                 "description" => __(
-                    "Specify the criteria for posts that will trigger this action. Leave blank to include all posts.", // phpcs:ignore Generic.Files.LineLength.TooLong
+                    "Specify the criteria for posts that will trigger this action.",
                     "post-expirator"
                 ),
                 "fields" => [
@@ -79,6 +79,8 @@ class CoreOnPostPublished implements NodeTypeInterface
                             "acceptsInput" => false,
                             "isPostTypeRequired" => true,
                             "hidePostStatus" => true,
+                            "postTypeDescription" => __("Select the post types that will trigger this action.", "post-expirator"),
+                            "postIdDescription" => __("Enter one or more post IDs. Leave empty to include all posts.", "post-expirator"),
                         ],
                         "default" => [
                             "postSource" => "custom",

@@ -490,7 +490,7 @@ var FutureActionPanel = function FutureActionPanel(props) {
           _part$split2 = _slicedToArray(_part$split, 2),
           before = _part$split2[0],
           after = _part$split2[1];
-        result.push(/*#__PURE__*/React.createElement("a", {
+        result.push( /*#__PURE__*/React.createElement("a", {
           href: href,
           target: target,
           key: href
@@ -1445,7 +1445,7 @@ var PostTypeSettingsPanel = function PostTypeSettingsPanel(props) {
     onChange: onChangeActive
   }))];
   if (isActive) {
-    settingsRows.push(/*#__PURE__*/React.createElement(___WEBPACK_IMPORTED_MODULE_0__.SettingRow, {
+    settingsRows.push( /*#__PURE__*/React.createElement(___WEBPACK_IMPORTED_MODULE_0__.SettingRow, {
       label: props.text.fieldAutoEnable,
       key: 'expirationdate_autoenable-' + props.postType
     }, /*#__PURE__*/React.createElement(___WEBPACK_IMPORTED_MODULE_0__.CheckboxControl, {
@@ -1454,7 +1454,7 @@ var PostTypeSettingsPanel = function PostTypeSettingsPanel(props) {
       label: props.text.fieldAutoEnableLabel,
       onChange: onChangeAutoEnabled
     })));
-    settingsRows.push(/*#__PURE__*/React.createElement(___WEBPACK_IMPORTED_MODULE_0__.SettingRow, {
+    settingsRows.push( /*#__PURE__*/React.createElement(___WEBPACK_IMPORTED_MODULE_0__.SettingRow, {
       label: props.text.fieldTaxonomy,
       key: 'expirationdate_taxonomy-' + props.postType
     }, /*#__PURE__*/React.createElement(___WEBPACK_IMPORTED_MODULE_0__.SelectControl, {
@@ -1466,7 +1466,7 @@ var PostTypeSettingsPanel = function PostTypeSettingsPanel(props) {
       data: props.postType,
       onChange: onChangeTaxonomy
     })));
-    settingsRows.push(/*#__PURE__*/React.createElement(___WEBPACK_IMPORTED_MODULE_0__.SettingRow, {
+    settingsRows.push( /*#__PURE__*/React.createElement(___WEBPACK_IMPORTED_MODULE_0__.SettingRow, {
       label: props.text.fieldHowToExpire,
       key: 'expirationdate_expiretype-' + props.postType
     }, /*#__PURE__*/React.createElement(___WEBPACK_IMPORTED_MODULE_0__.SelectControl, {
@@ -1493,7 +1493,7 @@ var PostTypeSettingsPanel = function PostTypeSettingsPanel(props) {
       expandOnFocus: true,
       autoSelectFirstMatch: true
     })));
-    settingsRows.push(/*#__PURE__*/React.createElement(___WEBPACK_IMPORTED_MODULE_0__.SettingRow, {
+    settingsRows.push( /*#__PURE__*/React.createElement(___WEBPACK_IMPORTED_MODULE_0__.SettingRow, {
       label: props.text.fieldDefaultDateTimeOffset,
       key: 'expired-custom-date-' + props.postType
     }, /*#__PURE__*/React.createElement(___WEBPACK_IMPORTED_MODULE_0__.TextControl, {
@@ -1513,7 +1513,7 @@ var PostTypeSettingsPanel = function PostTypeSettingsPanel(props) {
       setHasPendingValidationCallback: setHasPendingValidation,
       setHasValidDataCallback: setHasValidData
     })));
-    settingsRows.push(/*#__PURE__*/React.createElement(___WEBPACK_IMPORTED_MODULE_0__.SettingRow, {
+    settingsRows.push( /*#__PURE__*/React.createElement(___WEBPACK_IMPORTED_MODULE_0__.SettingRow, {
       label: props.text.fieldWhoToNotify,
       key: 'expirationdate_emailnotification-' + props.postType
     }, /*#__PURE__*/React.createElement(___WEBPACK_IMPORTED_MODULE_0__.TextControl, {
@@ -1572,7 +1572,7 @@ var PostTypesSettingsPanels = function PostTypesSettingsPanels(props) {
     var _Object$entries$_i = _slicedToArray(_Object$entries[_i], 2),
       postType = _Object$entries$_i[0],
       postTypeSettings = _Object$entries$_i[1];
-    panels.push(/*#__PURE__*/React.createElement(___WEBPACK_IMPORTED_MODULE_0__.PostTypeSettingsPanel, {
+    panels.push( /*#__PURE__*/React.createElement(___WEBPACK_IMPORTED_MODULE_0__.PostTypeSettingsPanel, {
       legend: postTypeSettings.label,
       text: props.text,
       postType: postType,
@@ -1599,7 +1599,7 @@ var PostTypesSettingsPanels = function PostTypesSettingsPanels(props) {
       _postType = _Object$entries2$_i[0],
       _postTypeSettings = _Object$entries2$_i[1];
     selected = currentTab === _postType;
-    tabs.push(/*#__PURE__*/React.createElement("a", {
+    tabs.push( /*#__PURE__*/React.createElement("a", {
       href: "#".concat(_postType, "-panel"),
       className: "nav-tab " + (selected ? 'nav-tab-active' : ''),
       key: "".concat(_postType, "-tab"),
@@ -2386,7 +2386,10 @@ var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBP
 ___CSS_LOADER_EXPORT___.push([module.id, `.publishpress-future-date-preview .publishpress-future-date-preview-value {
     font-family: monospace;
     background-color: #e7e7e7;
-    padding: 2px 4px;
+    padding: 4px 6px;
+    display: inline-block;
+    min-width: 140px;
+    min-height: 20px;
 }
 
 .publishpress-future-date-preview.compact .publishpress-future-date-preview-label {
@@ -2414,7 +2417,7 @@ ___CSS_LOADER_EXPORT___.push([module.id, `.publishpress-future-date-preview .pub
 .publishpress-future-notice.publishpress-future-notice-error {
     color: #dc3232;
 }
-`, "",{"version":3,"sources":["webpack://./assets/jsx/components/css/dateOffsetPreview.css"],"names":[],"mappings":"AAAA;IACI,sBAAsB;IACtB,yBAAyB;IACzB,gBAAgB;AACpB;;AAEA;IACI,cAAc;AAClB;;AAEA;IACI,kBAAkB;AACtB;;AAEA;IACI,eAAe;IACf,gBAAgB;IAChB,gBAAgB;IAChB,yBAAyB;IACzB,qBAAqB;IACrB,wBAAwB;IACxB,YAAY;IACZ,cAAc;IACd,kBAAkB;IAClB,cAAc;IACd,aAAa;AACjB;;AAEA;IACI,cAAc;AAClB","sourcesContent":[".publishpress-future-date-preview .publishpress-future-date-preview-value {\n    font-family: monospace;\n    background-color: #e7e7e7;\n    padding: 2px 4px;\n}\n\n.publishpress-future-date-preview.compact .publishpress-future-date-preview-label {\n    display: block;\n}\n\n.publishpress-future-date-preview.compact {\n    margin-bottom: 8px;\n}\n\n.publishpress-future-date-preview.compact h4 {\n    font-size: 11px;\n    font-weight: 500;\n    line-height: 1.4;\n    text-transform: uppercase;\n    display: inline-block;\n    margin-bottom: calc(8px);\n    padding: 0px;\n    flex-shrink: 0;\n    margin-right: 12px;\n    max-width: 75%;\n    margin-top: 0;\n}\n\n.publishpress-future-notice.publishpress-future-notice-error {\n    color: #dc3232;\n}\n"],"sourceRoot":""}]);
+`, "",{"version":3,"sources":["webpack://./assets/jsx/components/css/dateOffsetPreview.css"],"names":[],"mappings":"AAAA;IACI,sBAAsB;IACtB,yBAAyB;IACzB,gBAAgB;IAChB,qBAAqB;IACrB,gBAAgB;IAChB,gBAAgB;AACpB;;AAEA;IACI,cAAc;AAClB;;AAEA;IACI,kBAAkB;AACtB;;AAEA;IACI,eAAe;IACf,gBAAgB;IAChB,gBAAgB;IAChB,yBAAyB;IACzB,qBAAqB;IACrB,wBAAwB;IACxB,YAAY;IACZ,cAAc;IACd,kBAAkB;IAClB,cAAc;IACd,aAAa;AACjB;;AAEA;IACI,cAAc;AAClB","sourcesContent":[".publishpress-future-date-preview .publishpress-future-date-preview-value {\n    font-family: monospace;\n    background-color: #e7e7e7;\n    padding: 4px 6px;\n    display: inline-block;\n    min-width: 140px;\n    min-height: 20px;\n}\n\n.publishpress-future-date-preview.compact .publishpress-future-date-preview-label {\n    display: block;\n}\n\n.publishpress-future-date-preview.compact {\n    margin-bottom: 8px;\n}\n\n.publishpress-future-date-preview.compact h4 {\n    font-size: 11px;\n    font-weight: 500;\n    line-height: 1.4;\n    text-transform: uppercase;\n    display: inline-block;\n    margin-bottom: calc(8px);\n    padding: 0px;\n    flex-shrink: 0;\n    margin-right: 12px;\n    max-width: 75%;\n    margin-top: 0;\n}\n\n.publishpress-future-notice.publishpress-future-notice-error {\n    color: #dc3232;\n}\n"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -3097,7 +3100,7 @@ module.exports = wp.url;
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+// This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
 (() => {
 /*!*****************************************!*\
   !*** ./assets/jsx/settings-general.jsx ***!
